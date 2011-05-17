@@ -10,8 +10,8 @@ PGXN::Meta - A set of distribution prerequisites by phase and type
 =head1 Description
 
 A PGXN::Meta::Prereqs object represents the prerequisites for a PGXN
-distribution or one of its optional features.  Each set of prereqs is
-organized by phase and type, as described in L<PGXN::Meta::Prereqs>.
+distribution or one of its optional features. Each set of prereqs is organized
+by phase and type.
 
 =cut
 
@@ -27,14 +27,14 @@ use Version::Requirements 0.101020; # finalize
 
   my $prereq = PGXN::Meta::Prereqs->new( \%prereq_spec );
 
-This method returns a new set of Prereqs.  The input should look like the
+This method returns a new set of Prereqs. The input should look like the
 contents of the C<prereqs> field described in L<PGXN::Meta::Spec>, meaning
 something more or less like this:
 
   my $prereq = PGXN::Meta::Prereqs->new({
     runtime => {
       requires => {
-        'Some::Module' => '1.234',
+        'some-extension' => '1.234.0',
         ...,
       },
       ...,
@@ -46,8 +46,8 @@ You can also construct an empty set of prereqs with:
 
   my $prereqs = PGXN::Meta::Prereqs->new;
 
-This empty set of prereqs is useful for accumulating new prereqs before finally
-dumping the whole set into a structure or string.
+This empty set of prereqs is useful for accumulating new prereqs before
+finally dumping the whole set into a structure or string.
 
 =cut
 
@@ -92,7 +92,7 @@ sub new {
   my $requirements = $prereqs->requirements_for( $phase, $type );
 
 This method returns a L<Version::Requirements> object for the given phase/type
-combination.  If no prerequisites are registered for that combination, a new
+combination. If no prerequisites are registered for that combination, a new
 Version::Requirements object will be returned, and it may be added to as
 needed.
 
@@ -128,10 +128,10 @@ sub requirements_for {
 
   my $new_prereqs = $prereqs->with_merged_prereqs( \@other_prereqs );
 
-This method returns a new PGXN::Meta::Prereqs objects in which all the
-other prerequisites given are merged into the current set.  This is primarily
-provided for combining a distribution's core prereqs with the prereqs of one of
-its optional features.
+This method returns a new PGXN::Meta::Prereqs objects in which all the other
+prerequisites given are merged into the current set. This is primarily
+provided for combining a distribution's core prereqs with the prereqs of one
+of its optional features.
 
 The new prereqs object has no ties to the originals, and altering it further
 will not alter them.
@@ -169,9 +169,9 @@ sub with_merged_prereqs {
 
 =head3 C<as_string_hash>
 
-This method returns a hashref containing structures suitable for dumping into a
-distmeta data structure.  It is made up of hashes and strings, only; there will
-be no Prereqs, Version::Requirements, or C<version> objects inside it.
+This method returns a hashref containing structures suitable for dumping into
+a distmeta data structure. It is made up of hashes and strings, only; there
+will be no Prereqs, Version::Requirements, or C<version> objects inside it.
 
 =cut
 
@@ -194,8 +194,8 @@ sub as_string_hash {
 
 =head3 C<is_finalized>
 
-This method returns true if the set of prereqs has been marked "finalized," and
-cannot be altered.
+This method returns true if the set of prereqs has been marked "finalized,"
+and cannot be altered.
 
 =cut
 
@@ -203,9 +203,9 @@ sub is_finalized { $_[0]{finalized} }
 
 =head3 C<finalize>
 
-Calling C<finalize> on a Prereqs object will close it for further modification.
-Attempting to make any changes that would actually alter the prereqs will
-result in an exception being thrown.
+Calling C<finalize> on a Prereqs object will close it for further
+modification. Attempting to make any changes that would actually alter the
+prereqs will result in an exception being thrown.
 
 =cut
 
@@ -224,7 +224,7 @@ sub finalize {
   my $cloned_prereqs = $prereqs->clone;
 
 This method returns a Prereqs object that is identical to the original object,
-but can be altered without affecting the original object.  Finalization does
+but can be altered without affecting the original object. Finalization does
 not survive cloning, meaning that you may clone a finalized set of prereqs and
 then modify the clone.
 
