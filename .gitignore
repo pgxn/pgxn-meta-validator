@@ -3,7 +3,7 @@ blib
 PGXN-Meta-*
 MANIFEST
 MANIFEST.bak
-META.*
+/META.*
 Build
 MYMETA.*
 Makefile*
