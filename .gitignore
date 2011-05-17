@@ -1,0 +1,9 @@
+_build
+blib
+PGXN-Meta-*
+MANIFEST
+MANIFEST.bak
+META.*
+Build
+MYMETA.*
+Makefile*
