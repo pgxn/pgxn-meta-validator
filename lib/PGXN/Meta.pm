@@ -194,6 +194,16 @@ The inspiration for this module.
 
 =back
 
+=head1 To Do
+
+=over
+
+=item *
+
+Add L<SemVer> support to L<Version::Requirements>
+
+=back
+
 =head1 Support
 
 This module is stored in an open L<GitHub
