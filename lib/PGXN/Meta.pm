@@ -5,6 +5,7 @@ use strict;
 use Carp qw(croak);
 use JSON ();
 use PGXN::Meta::Prereqs;
+use PGXN::Meta::Validator;
 
 our $VERSION = v0.10.0;
 
@@ -12,11 +13,11 @@ sub _new {
     my ($class, $struct, $options) = @_;
 
     # validate struct
-    # my $pmv = PGXN::Meta::Validator->new( $struct );
-    # unless ( $pmv->is_valid) {
-    #     die "Invalid metadata structure. Errors: "
-    #         . join(", ", $pmv->errors) . "\n";
-    # }
+    my $pmv = PGXN::Meta::Validator->new( $struct );
+    unless ( $pmv->is_valid) {
+        die "Invalid metadata structure. Errors: "
+            . join(", ", $pmv->errors) . "\n";
+    }
 
     return bless $struct, $class;
 }

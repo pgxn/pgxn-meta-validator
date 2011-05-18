@@ -40,11 +40,11 @@ my $distmeta = {
     resources => {
         'homepage' => 'http://pgtap.org/',
         'bugtracker' => {
-            'web' => 'https =>//github.com/theory/pgtap/issues'
+            'web' => 'https://github.com/theory/pgtap/issues'
         },
         'repository' => {
-            'url' =>  'https =>//github.com/theory/pgtap.git',
-            'web' =>  'https =>//github.com/theory/pgtap',
+            'url' =>  'https://github.com/theory/pgtap.git',
+            'web' =>  'https://github.com/theory/pgtap',
             'type' => 'git'
         }
     },
@@ -130,11 +130,11 @@ is_deeply(
     {
         homepage => 'http://pgtap.org/',
         bugtracker => {
-            web => 'https =>//github.com/theory/pgtap/issues'
+            web => 'https://github.com/theory/pgtap/issues'
         },
         repository => {
-            url =>  'https =>//github.com/theory/pgtap.git',
-            web =>  'https =>//github.com/theory/pgtap',
+            url =>  'https://github.com/theory/pgtap.git',
+            web =>  'https://github.com/theory/pgtap',
             type => 'git'
         },
     },
