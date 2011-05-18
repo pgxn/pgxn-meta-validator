@@ -21,6 +21,13 @@ my $distmeta = {
     ],
     release_status => 'stable',
     license  => [ 'postgresql' ],
+    provides => {
+        pgtap => {
+            abstract => "Unit testing for PostgreSQL",
+            file => "pgtap.sql",
+            version => "0.26.0"
+        }
+    },
     prereqs => {
         runtime => {
             requires => {

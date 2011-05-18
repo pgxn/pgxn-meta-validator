@@ -29,6 +29,27 @@ sub new {
     return $self;
 }
 
+sub load_file {
+  my ($class, $file, $options) = @_;
+
+  croak "load_file() requires a valid, readable filename"
+    unless -r $file;
+
+  my $self;
+  eval {
+      my $json = JSON->new;
+      my $struct = $json->decode(do {
+          local $/;
+          open my $fh, '<:raw', $file or croak "Cannot open $file: $!\n";
+          <$fh>;
+      });
+      $self = $class->_new($struct, $options);
+  };
+  croak($@) if $@;
+  return $self;
+}
+
+
 sub _dclone {
     my $json = JSON->new;
     $json->decode($json->convert_blessed->encode(shift));

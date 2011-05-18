@@ -1,7 +1,9 @@
-use 5.006;
+package PGXN::Meta::Validator;
+
+use 5.010;
 use strict;
 use warnings;
-package PGXN::Meta::Validator;
+use SemVer;
 
 =head1 Name
 
@@ -43,13 +45,9 @@ my %known_specs = (
 );
 my %known_urls = map {$known_specs{$_} => $_} keys %known_specs;
 
-my $module_map = { 'map' => { ':key' => { name => \&module, value => \&exversion } } };
-
 my $no_index = {
     'map'       => { file       => { list => { value => \&string } },
                      directory  => { list => { value => \&string } },
-                     'package'  => { list => { value => \&string } },
-                     namespace  => { list => { value => \&string } },
                     ':key'      => { name => \&custom_2, value => \&anything },
     }
 };
@@ -61,7 +59,7 @@ my $prereq_map = {
       'map' => {
         ':key'  => {
           name => \&relation,
-          %$module_map,
+          'map' => { ':key' => { name => \&module, value => \&exversion } }
         },
       },
     }
@@ -86,24 +84,27 @@ my %definitions = (
         'name'                => { mandatory => 1, value => \&string  },
         'release_status'      => { mandatory => 1, value => \&release_status },
         'version'             => { mandatory => 1, value => \&version },
+        'provides'    => {
+            'mandatory' => 1,
+            'map'       => {
+                ':key' => {
+                    name  => \&module,
+                    'map' => {
+                        file     => { mandatory => 1, value => \&file },
+                        version  => { value => \&version },
+                        abstract => { mandatory => 0, value => \&string  },
+                        docfile  => { mandatory => 0, value => \&file },
+                        ':key' => { name => \&custom_2, value => \&anything },
+                    }
+                }
+            }
+        },
 
         # OPTIONAL
         'description' => { value => \&string },
         'tags'    => { lazylist => { value => \&string } },
         'no_index' => $no_index,
         'prereqs' => $prereq_map,
-        'provides'    => {
-            'map'       => {
-                ':key' => {
-                    name  => \&module,
-                    'map' => {
-                        file    => { mandatory => 1, value => \&file },
-                        version => { value => \&version },
-                        ':key' => { name => \&custom_2, value => \&anything },
-                    }
-                }
-            }
-        },
         'resources'   => {
             'map'       => {
                 license    => { lazylist => { value => \&url } },
@@ -502,7 +503,14 @@ sub exversion {
     my ($self,$key,$value) = @_;
     if(defined $value && ($value || $value =~ /0/)) {
         my $pass = 1;
-        for(split(",",$value)) { $self->version($key,$_) or ($pass = 0); }
+        for my $val (split ',', $value) {
+            unless (defined $val && (
+                $val eq '0' || eval { SemVer->new($val) }
+            )) {
+                $self->_error( "'$val' for '$key' is not a valid version." );
+                $pass = 0;
+            }
+        }
         return $pass;
     }
     $value = '<undef>'  unless(defined $value);
@@ -512,9 +520,8 @@ sub exversion {
 
 sub version {
     my ($self,$key,$value) = @_;
-    if(defined $value) {
-        return 0    unless($value || $value =~ /0/);
-        return 1    if($value =~ /^\s*((<|<=|>=|>|!=|==)\s*)?v?\d+((\.\d+((_|\.)\d+)?)?)/);
+    if (defined $value) {
+        return 1    if eval { SemVer->new($value) };
     } else {
         $value = '<undef>';
     }
