@@ -251,5 +251,3 @@ Issues|http://github.com/theory/pgxn-meta/issues/> or by sending mail to
 L<bug-PGXN-Meta@rt.cpan.org|mailto:bug-PGXN-Meta@rt.cpan.org>.
 
 =cut
-
-

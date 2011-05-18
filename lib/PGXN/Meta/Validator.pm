@@ -2,29 +2,34 @@ use 5.006;
 use strict;
 use warnings;
 package PGXN::Meta::Validator;
-# ABSTRACT: validate PGXN distribution metadata structures
 
-=head1 SYNOPSIS
+=head1 Name
+
+PGXN::Meta - Validate PGXN distribution metadata structures
+
+=head1 Synopsis
 
   my $struct = decode_json_file('META.json');
 
-  my $cmv = PGXN::Meta::Validator->new( $struct );
+  my $pmv = PGXN::Meta::Validator->new( $struct );
 
-  unless ( $cmv->is_valid ) {
-    my $msg = "Invalid META structure.  Errors found:\n";
-    $msg .= join( "\n", $cmv->errors );
-    die $msg;
+  unless ( $pmv->is_valid ) {
+      my $msg = "Invalid META structure. Errors found:\n";
+      $msg .= join( "\n", $pmv->errors );
+      die $msg;
   }
 
-=head1 DESCRIPTION
+=head1 Description
 
-This module validates a PGXN Meta structure against the version of the
-the specification claimed in the C<meta-spec> field of the structure.
+This module validates a PGXN Meta structure against the version of the the
+specification claimed in the C<meta-spec> field of the structure.
 
 =cut
 
 #--------------------------------------------------------------------------#
-# This code copied and adapted from Test::PGXN::Meta
+# This code copied and adapted from CPAN::Meta::Valicator by
+# David Golden <dagolden@cpan.org> and Ricardo Signes <rjbs@cpan.org>,
+# which in turn adapted and copied it from Test::CPAN::Meta
 # by Barbie, <barbie@cpan.org> for Miss Barbell Productions,
 # L<http://www.missbarbell.co.uk>
 #--------------------------------------------------------------------------#
@@ -34,43 +39,18 @@ the specification claimed in the C<meta-spec> field of the structure.
 #--------------------------------------------------------------------------#
 
 my %known_specs = (
-    '1.0.0' => 'http://pgxn.org/spec/'
+    '1.0.0' => 'http://pgxn.org/spec/1.0.0/'
 );
 my %known_urls = map {$known_specs{$_} => $_} keys %known_specs;
 
-my $module_map1 = { 'map' => { ':key' => { name => \&module, value => \&exversion } } };
+my $module_map = { 'map' => { ':key' => { name => \&module, value => \&exversion } } };
 
-my $module_map2 = { 'map' => { ':key' => { name => \&module, value => \&version   } } };
-
-my $no_index_2 = {
+my $no_index = {
     'map'       => { file       => { list => { value => \&string } },
                      directory  => { list => { value => \&string } },
                      'package'  => { list => { value => \&string } },
                      namespace  => { list => { value => \&string } },
                     ':key'      => { name => \&custom_2, value => \&anything },
-    }
-};
-
-my $no_index_1_3 = {
-    'map'       => { file       => { list => { value => \&string } },
-                     directory  => { list => { value => \&string } },
-                     'package'  => { list => { value => \&string } },
-                     namespace  => { list => { value => \&string } },
-                     ':key'     => { name => \&string, value => \&anything },
-    }
-};
-
-my $no_index_1_2 = {
-    'map'       => { file       => { list => { value => \&string } },
-                     dir        => { list => { value => \&string } },
-                     'package'  => { list => { value => \&string } },
-                     namespace  => { list => { value => \&string } },
-                     ':key'     => { name => \&string, value => \&anything },
-    }
-};
-
-my $no_index_1_1 = {
-    'map'       => { ':key'     => { name => \&string, list => { value => \&string } },
     }
 };
 
@@ -81,7 +61,7 @@ my $prereq_map = {
       'map' => {
         ':key'  => {
           name => \&relation,
-          %$module_map1,
+          %$module_map,
         },
       },
     }
@@ -110,7 +90,7 @@ my %definitions = (
         # OPTIONAL
         'description' => { value => \&string },
         'tags'    => { lazylist => { value => \&string } },
-        'no_index'    => $no_index_2,
+        'no_index' => $no_index,
         'prereqs' => $prereq_map,
         'provides'    => {
             'map'       => {
@@ -157,9 +137,13 @@ my %definitions = (
 # Code
 #--------------------------------------------------------------------------#
 
-=method new
+=head1 Interface
 
-  my $cmv = PGXN::Meta::Validator->new( $struct )
+=head2 Constructor
+
+=head3 C<new>
+
+  my $pmv = PGXN::Meta::Validator->new( $struct )
 
 The constructor must be passed a metadata structure.
 
@@ -179,9 +163,11 @@ sub new {
   return bless $self, $class;
 }
 
-=method is_valid
+=head2 Instance Methods
 
-  if ( $cmv->is_valid ) {
+=head3 C<is_valid>
+
+  if ( $pmv->is_valid ) {
     ...
   }
 
@@ -198,9 +184,9 @@ sub is_valid {
     return ! $self->errors;
 }
 
-=method errors
+=head3 C<errors>
 
-  warn( join "\n", $cmv->errors );
+  warn( join "\n", $pmv->errors );
 
 Returns a list of errors seen during validation.
 
@@ -675,15 +661,14 @@ sub _error {
 
 __END__
 
-=head1 BUGS
+=head1 Support
 
-Please report any bugs or feature using the PGXN Request Tracker.
-Bugs can be submitted through the web interface at
-L<http://rt.cpan.org/Dist/Display.html?Queue=PGXN-Meta>
+This module is stored in an open L<GitHub
+repository|http://github.com/theory/pgxn-meta/>. Feel free to fork and
+contribute!
 
-When submitting a bug or request, please include a test-file or a patch to an
-existing test-file that illustrates the bug or desired feature.
+Please file bug reports via L<GitHub
+Issues|http://github.com/theory/pgxn-meta/issues/> or by sending mail to
+L<bug-PGXN-Meta@rt.cpan.org|mailto:bug-PGXN-Meta@rt.cpan.org>.
 
 =cut
-
-
