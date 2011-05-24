@@ -71,7 +71,7 @@ my %definitions = (
         # REQUIRED
         'abstract'            => { mandatory => 1, value => \&string  },
         'maintainer'          => { mandatory => 1, lazylist => { value => \&string } },
-        'generated_by'        => { mandatory => 1, value => \&string  },
+        'generated_by'        => { mandatory => 0, value => \&string  },
         'license'             => {
             mandatory => 1,
             listormap => {
@@ -110,7 +110,7 @@ my %definitions = (
 
         # OPTIONAL
         'description' => { value => \&string },
-        'tags'    => { lazylist => { value => \&string } },
+        'tags'    => { lazylist => { value => \&tag } },
         'no_index' => $no_index,
         'prereqs' => $prereq_map,
         'resources'   => {

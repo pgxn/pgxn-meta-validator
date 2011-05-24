@@ -87,6 +87,9 @@ for my $spec (
     ['meta-spec custom key' => sub { shift->{'meta-spec'}{x_foo} = 1 }],
     ['multibyte name' => sub { shift->{name} = 'yoŭknow'}],
     ['name with dash' => sub { shift->{name} = 'foo-bar' }],
+    ['no generated_by' => sub { delete shift->{generated_by} }],
+    ['one tag' => sub { shift->{tags} = 'foo' }],
+    ['no tags' => sub { shift->{tags} = [] }],
 ) {
     my ($desc, $sub) = @{ $spec };
     my $dm = clone $distmeta;
@@ -271,6 +274,41 @@ for my $spec (
         'short name',
         sub { shift->{name} = "f" },
         "term value must be at least 2 characters (name) [Validation: 1.0.0]",
+    ],
+    [
+        'undefined description',
+        sub { shift->{description} = undef },
+        "value is an undefined string (description) [Validation: 1.0.0]",
+    ],
+    [
+        'undefined generated_by',
+        sub { shift->{generated_by} = undef },
+        "value is an undefined string (generated_by) [Validation: 1.0.0]",
+    ],
+    [
+        'undef tag',
+        sub { shift->{tags} = undef },
+        "Expected a list structure (tags) [Validation: 1.0.0]",
+    ],
+    [
+        'empty tag',
+        sub { shift->{tags} = '' },
+        "value is not a valid tag (tags -> <undef>) [Validation: 1.0.0]",
+    ],
+    [
+        'empty tag item',
+        sub { shift->{tags} = ['foo', ''] },
+        "value is not a valid tag (tags -> <undef>) [Validation: 1.0.0]",
+    ],
+    [
+        'undef tag item',
+        sub { shift->{tags} = ['foo', undef] },
+        "value is an undefined tag (tags -> <undef>) [Validation: 1.0.0]",
+    ],
+    [
+        'long tag',
+        sub { shift->{tags} = 'x' x 257 },
+        "tag value must be no more than 256 characters (tags -> xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx) [Validation: 1.0.0]",
     ],
 ) {
     my ($desc, $sub, $err) = @{ $spec };
