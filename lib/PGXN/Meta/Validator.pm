@@ -48,7 +48,7 @@ my %known_urls = map {$known_specs{$_} => $_} keys %known_specs;
 my $no_index = {
     'map'       => { file       => { list => { value => \&string } },
                      directory  => { list => { value => \&string } },
-                    ':key'      => { name => \&custom_2, value => \&anything },
+                    ':key'      => { name => \&custom, value => \&anything },
     }
 };
 
@@ -59,7 +59,7 @@ my $prereq_map = {
       'map' => {
         ':key'  => {
           name => \&relation,
-          'map' => { ':key' => { name => \&module, value => \&exversion } }
+          'map' => { ':key' => { name => \&term, value => \&exversion } }
         },
       },
     }
@@ -86,7 +86,7 @@ my %definitions = (
             'map' => {
                 version => { mandatory => 1, value => \&version},
                 url     => { value => \&url },
-                ':key' => { name => \&custom_2, value => \&anything },
+                ':key' => { name => \&custom, value => \&anything },
             }
         },
         'name'                => { mandatory => 1, value => \&string  },
@@ -96,13 +96,13 @@ my %definitions = (
             'mandatory' => 1,
             'map'       => {
                 ':key' => {
-                    name  => \&module,
+                    name  => \&term,
                     'map' => {
                         file     => { mandatory => 1, value => \&file },
-                        version  => { value => \&version },
+                        version  => { mandatory => 1, value => \&version },
                         abstract => { mandatory => 0, value => \&string  },
                         docfile  => { mandatory => 0, value => \&file },
-                        ':key' => { name => \&custom_2, value => \&anything },
+                        ':key' => { name => \&custom, value => \&anything },
                     }
                 }
             }
@@ -121,7 +121,7 @@ my %definitions = (
                     'map' => {
                         web => { value => \&url },
                         mailto => { value => \&string},
-                        ':key' => { name => \&custom_2, value => \&anything },
+                        ':key' => { name => \&custom, value => \&anything },
                     }
                 },
                 repository => {
@@ -129,16 +129,16 @@ my %definitions = (
                         web => { value => \&url },
                         url => { value => \&url },
                         type => { value => \&string },
-                        ':key' => { name => \&custom_2, value => \&anything },
+                        ':key' => { name => \&custom, value => \&anything },
                     }
                 },
-                ':key'     => { value => \&string, name => \&custom_2 },
+                ':key'     => { value => \&string, name => \&custom },
             }
         },
 
         # CUSTOM -- additional user defined key/value pairs
         # note we can only validate the key name, as the structure is user defined
-        ':key'        => { name => \&custom_2, value => \&anything },
+        ':key'        => { name => \&custom, value => \&anything },
     },
 );
 
@@ -227,6 +227,11 @@ the appropriate specification definition.
 
 Checks whether a list conforms, but converts strings to a single-element list
 
+=item * check_listormap($spec,$data)
+
+Checks whether a map or lazy list conforms to the appropriate specification
+definition.
+
 =back
 
 =cut
@@ -243,7 +248,7 @@ sub check_map {
     }
 
     if(ref($data) ne 'HASH') {
-        $self->_error( "Expected a map structure from string or file." );
+        $self->_error( "Expected a map structure." );
         return;
     }
 
@@ -402,13 +407,7 @@ Validates for a boolean value. Currently these values are '1', '0', 'true',
 Validates that a value is given for the license. Returns 1 if an known license
 type, or 2 if a value is given but the license type is not a recommended one.
 
-=item * custom_1($self,$key,$value)
-
-Validates that the given key is in CamelCase, to indicate a user defined
-tag and only has characters in the class [-_a-zA-Z].  In version 1.X
-of the spec, this was only explicitly stated for 'resources'.
-
-=item * custom_2($self,$key,$value)
+=item * custom($self,$key,$value)
 
 Validates that the given key begins with 'x_' or 'X_', to indicate a user
 defined tag and only has characters in the class [-_a-zA-Z]
@@ -419,10 +418,15 @@ Validates that key is in an acceptable format for the META specification,
 for an identifier, i.e. any that matches the regular expression
 qr/[a-z][a-z_]/i.
 
-=item * module($self,$key,$value)
+=item * term($self,$key,$value)
 
-Validates that a given key is in an acceptable module name format, e.g.
-'Test::PGXN::Meta::Version'.
+Validates that a given value is in an acceptable term, i.e., at least two
+characters and does not contain control characters, spaces, C</>, or C<\>.
+
+=item * tag($self,$key,$value)
+
+Validates that a given value is in an acceptable tag, i.e., between 1 and 256
+characters and does not contain control characters, C</>, or C<\>.
 
 =back
 
@@ -504,6 +508,37 @@ sub string {
     }
     $self->_error( "value is an undefined string" );
     return 0;
+}
+
+sub term {
+    shift->_string_class(@_, term => qr{[[:space:][:cntrl:]/\\]}, 2);
+}
+
+sub tag {
+    shift->_string_class(@_, tag => qr{[[:cntrl:]/\\]}, 1, 256);
+}
+
+sub _string_class {
+    my ($self, $key, $value, $type, $regex, $min, $max) = @_;
+    unless (defined $value) {
+        $self->_error( "value is an undefined $type" );
+        return 0;
+    }
+
+    if (($value || $value =~ /^0$/) && $value !~ $regex) {
+        if ($min && length $value < $min) {
+            $self->_error("$type value must be at least $min characters");
+            return 0;
+        }
+        if ($max && length $value > $max) {
+            $self->_error("$type value must be no more than $max characters");
+            return 0;
+        }
+        return 1;
+    } else {
+        $self->_error("value is not a valid $type");
+        return 0;
+    }
 }
 
 sub string_or_undef {
@@ -604,20 +639,7 @@ sub license {
     return 0;
 }
 
-sub custom_1 {
-    my ($self,$key) = @_;
-    if(defined $key) {
-        # a valid user defined key should be alphabetic
-        # and contain at least one capital case letter.
-        return 1    if($key && $key =~ /^[_a-z]+$/i && $key =~ /[A-Z]/);
-    } else {
-        $key = '<undef>';
-    }
-    $self->_error( "Custom resource '$key' must be in CamelCase." );
-    return 0;
-}
-
-sub custom_2 {
+sub custom {
     my ($self,$key) = @_;
     if(defined $key) {
         return 1    if($key && $key =~ /^x_/i);  # user defined
@@ -636,17 +658,6 @@ sub identifier {
         $key = '<undef>';
     }
     $self->_error( "Key '$key' is not a legal identifier." );
-    return 0;
-}
-
-sub module {
-    my ($self,$key) = @_;
-    if(defined $key) {
-        return 1    if($key && $key =~ /^[A-Za-z0-9_]+(::[A-Za-z0-9_]+)*$/);
-    } else {
-        $key = '<undef>';
-    }
-    $self->_error( "Key '$key' is not a legal module name." );
     return 0;
 }
 

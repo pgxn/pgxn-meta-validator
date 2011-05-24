@@ -80,6 +80,8 @@ for my $spec (
         foo => 'http://foo.com',
         bar => 'http://bar.com',
     } }],
+    ['provides docfile' => sub { shift->{provides}{pgtap}{docfile} = 'foo/bar.txt' }],
+    ['provides no abstract' => sub { delete shift->{provides}{pgtap}{abstract} }],
 ) {
     my ($desc, $sub) = @{ $spec };
     my $dm = clone $distmeta;
@@ -174,6 +176,46 @@ for my $spec (
         'second invalid license URL',
         sub { shift->{license} = { 'foo' => 'http://foo.com/', bar => 'not a URL' } },
         "'not a URL' for 'bar' does not have a URL scheme (license -> bar) [Validation: 1.0.0]",
+    ],
+    [
+        'no provides file',
+        sub { delete shift->{provides}{pgtap}{file} },
+        "Missing mandatory field, 'file' (provides -> pgtap -> file) [Validation: 1.0.0]",
+    ],
+    [
+        'no provides version',
+        sub { delete shift->{provides}{pgtap}{version} },
+        "Missing mandatory field, 'version' (provides -> pgtap -> version) [Validation: 1.0.0]",
+    ],
+    [
+        'invalid provides version',
+        sub { shift->{provides}{pgtap}{version} = '1.0' },
+        "'1.0' for 'version' is not a valid version. (provides -> pgtap -> version) [Validation: 1.0.0]",
+    ],
+    [
+        'provides array',
+        sub { shift->{provides} = ['pgtap', '0.24.0' ]},
+        'Expected a map structure. (provides) [Validation: 1.0.0]',
+    ],
+    [
+        'undefined provides file',
+        sub { shift->{provides}{pgtap}{file} = undef },
+        "Missing mandatory field, 'file' (provides -> pgtap -> file) [Validation: 1.0.0]",
+    ],
+    [
+        'undefined provides abstract',
+        sub { shift->{provides}{pgtap}{abstract} = undef },
+        "value is an undefined string (provides -> pgtap -> abstract) [Validation: 1.0.0]",
+    ],
+    [
+        'undefined provides version',
+        sub { shift->{provides}{pgtap}{version} = undef },
+        "Missing mandatory field, 'version' (provides -> pgtap -> version) [Validation: 1.0.0]",
+    ],
+    [
+        'undefined provides docfile',
+        sub { shift->{provides}{pgtap}{docfile} = undef },
+        "No file defined for 'docfile' (provides -> pgtap -> docfile) [Validation: 1.0.0]",
     ],
 ) {
     my ($desc, $sub, $err) = @{ $spec };
