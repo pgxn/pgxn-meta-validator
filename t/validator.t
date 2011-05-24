@@ -82,6 +82,9 @@ for my $spec (
     } }],
     ['provides docfile' => sub { shift->{provides}{pgtap}{docfile} = 'foo/bar.txt' }],
     ['provides no abstract' => sub { delete shift->{provides}{pgtap}{abstract} }],
+    ['provides custom key' => sub { shift->{provides}{pgtap}{x_foo} = 1 }],
+    ['no spec url' => sub { delete shift->{'meta-spec'}{url} }],
+    ['meta-spec custom key' => sub { shift->{'meta-spec'}{x_foo} = 1 }],
 ) {
     my ($desc, $sub) = @{ $spec };
     my $dm = clone $distmeta;
@@ -216,6 +219,26 @@ for my $spec (
         'undefined provides docfile',
         sub { shift->{provides}{pgtap}{docfile} = undef },
         "No file defined for 'docfile' (provides -> pgtap -> docfile) [Validation: 1.0.0]",
+    ],
+    [
+        'bad provides custom key',
+        sub { shift->{provides}{pgtap}{woot} = 'hi' },
+        "Custom key 'woot' must begin with 'x_' or 'X_'. (provides -> pgtap -> woot) [Validation: 1.0.0]",
+    ],
+    [
+        'alt spec version',
+        sub { shift->{'meta-spec'}{version} = '2.0.0' },
+        "Unknown META specification, cannot validate. [Validation: 2.0.0]",
+    ],
+    [
+        'no spec version',
+        sub { delete shift->{'meta-spec'}{version}; },
+        "Missing mandatory field, 'version' (meta-spec -> version) [Validation: 1.0.0]",
+    ],
+    [
+        'bad spec URL',
+        sub { shift->{'meta-spec'}{url} = 'not a url' },
+        "'not a url' for 'url' does not have a URL scheme (meta-spec -> url) [Validation: 1.0.0]",
     ],
 ) {
     my ($desc, $sub, $err) = @{ $spec };
