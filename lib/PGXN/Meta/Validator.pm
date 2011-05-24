@@ -46,8 +46,8 @@ my %known_specs = (
 my %known_urls = map {$known_specs{$_} => $_} keys %known_specs;
 
 my $no_index = {
-    'map'       => { file       => { lazylist => { value => \&string } },
-                     directory  => { lazylist => { value => \&string } },
+    'map'       => { file       => { list => { value => \&string } },
+                     directory  => { list => { value => \&string } },
                     ':key'      => { name => \&custom, value => \&anything },
     }
 };
@@ -70,12 +70,12 @@ my %definitions = (
     '1.0.0' => {
         # REQUIRED
         'abstract'            => { mandatory => 1, value => \&string  },
-        'maintainer'          => { mandatory => 1, lazylist => { value => \&string } },
+        'maintainer'          => { mandatory => 1, list => { value => \&string } },
         'generated_by'        => { mandatory => 0, value => \&string  },
         'license'             => {
             mandatory => 1,
             listormap => {
-                lazylist => { value => \&license },
+                list => { value => \&license },
                 map => {
                     ':key' => { name => \&anything, value => \&url }
                 },
@@ -110,12 +110,12 @@ my %definitions = (
 
         # OPTIONAL
         'description' => { value => \&string },
-        'tags'    => { lazylist => { value => \&tag } },
+        'tags'    => { list => { value => \&tag } },
         'no_index' => $no_index,
         'prereqs' => $prereq_map,
         'resources'   => {
             'map'       => {
-                license    => { lazylist => { value => \&url } },
+                license    => { list => { value => \&url } },
                 homepage   => { value => \&url },
                 bugtracker => {
                     'map' => {
@@ -220,11 +220,6 @@ appropriate specification definition.
 
 =item * check_list($spec,$data)
 
-Checks whether a list (or array) part of the data structure conforms to
-the appropriate specification definition.
-
-=item * check_lazylist($spec,$data)
-
 Checks whether a list conforms, but converts strings to a single-element list
 
 =item * check_listormap($spec,$data)
@@ -237,7 +232,7 @@ definition.
 =cut
 
 my $spec_error = "Missing validation action in specification. "
-  . "Must be one of 'map', 'list', 'lazylist', or 'value'";
+  . "Must be one of 'map', 'list', or 'value'";
 
 sub check_map {
     my ($self,$spec,$data) = @_;
@@ -269,8 +264,6 @@ sub check_map {
                 $self->check_map($spec->{$key}{'map'},$data->{$key});
             } elsif($spec->{$key}{'list'}) {
                 $self->check_list($spec->{$key}{'list'},$data->{$key});
-            } elsif($spec->{$key}{'lazylist'}) {
-                $self->check_lazylist($spec->{$key}{'lazylist'},$data->{$key});
             } elsif($spec->{$key}{'listormap'}) {
                 $self->check_listormap($spec->{$key}{'listormap'},$data->{$key});
             } else {
@@ -285,8 +278,6 @@ sub check_map {
                 $self->check_map($spec->{':key'}{'map'},$data->{$key});
             } elsif($spec->{':key'}{'list'}) {
                 $self->check_list($spec->{':key'}{'list'},$data->{$key});
-            } elsif($spec->{':key'}{'lazylist'}) {
-                $self->check_lazylist($spec->{':key'}{'lazylist'},$data->{$key});
             } elsif($spec->{':key'}{'listormap'}) {
                 $self->check_listormap($spec->{':key'}{'listormap'},$data->{$key});
             } else {
@@ -302,26 +293,12 @@ sub check_map {
 }
 
 # if it's a string, make it into a list and check the list
-sub check_lazylist {
+sub check_list {
     my ($self,$spec,$data) = @_;
 
     if ( defined $data && ! ref($data) ) {
       $data = [ $data ];
     }
-
-    $self->check_list($spec,$data);
-}
-
-sub check_listormap {
-    my ($self,$spec,$data) = @_;
-
-    return ref $data eq 'HASH'
-        ? $self->check_map($spec->{map}, $data)
-        : $self->check_lazylist($spec->{lazylist}, $data);
-}
-
-sub check_list {
-    my ($self,$spec,$data) = @_;
 
     if(ref($data) ne 'ARRAY') {
         $self->_error( "Expected a list structure" );
@@ -342,8 +319,8 @@ sub check_list {
             $self->check_map($spec->{'map'},$value);
         } elsif(defined $spec->{'list'}) {
             $self->check_list($spec->{'list'},$value);
-        } elsif(defined $spec->{'lazylist'}) {
-            $self->check_lazylist($spec->{'lazylist'},$value);
+        } elsif(defined $spec->{'list'}) {
+            $self->check_list($spec->{'list'},$value);
         } elsif(defined $spec->{'listormap'}) {
             $self->check_listormap($spec->{'listormap'},$value);
         } elsif ($spec->{':key'}) {
@@ -353,6 +330,14 @@ sub check_list {
         }
         pop @{$self->{stack}};
     }
+}
+
+sub check_listormap {
+    my ($self,$spec,$data) = @_;
+
+    return ref $data eq 'HASH'
+        ? $self->check_map($spec->{map}, $data)
+        : $self->check_list($spec->{list}, $data);
 }
 
 =head2 Validator Methods
