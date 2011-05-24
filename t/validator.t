@@ -101,6 +101,39 @@ for my $spec (
         directory => 'baz',
     }}],
     ['no index custom key' => sub { shift->{no_index}{X_foo} = 1 }],
+    (map {
+        my $phase = $_;
+        map {
+            my $rel = $_;
+            [
+                "$phase $rel prereq",
+                sub { my $m = shift; $m->{prereqs}{$phase}{$rel} = { foo => '1.2.0' }},
+            ]
+        } qw(requires recommends suggests);
+    } qw(configure runtime build test develop)),
+    (map {
+        my $op = $_;
+        [
+            "version range with $op operator",
+            sub { shift->{prereqs}{runtime}{requires}{PostgreSQL} = "$op 1.8.0"},
+        ],
+        [
+            "version range with unspaced $op operator",
+            sub { shift->{prereqs}{runtime}{requires}{PostgreSQL} = "${op}1.8.0"},
+        ],
+    } qw(== != < <= > >=)),
+    [
+        'prereq complex version range',
+        sub { shift->{prereqs}{runtime}{requires}{PostgreSQL} = '>= 1.2.0, != 1.5.0, < 2.0.0'},
+    ],
+    [
+        'prereq complex unspaced version range',
+        sub { shift->{prereqs}{runtime}{requires}{PostgreSQL} = '>=1.2.0,!=1.5.0,<2.0.0'},
+    ],
+    [
+        'prereq version 0',
+        sub { shift->{prereqs}{runtime}{requires}{PostgreSQL} = 0 },
+    ],
 ) {
     my ($desc, $sub) = @{ $spec };
     my $dm = clone $distmeta;
@@ -259,27 +292,27 @@ for my $spec (
     [
         'name with newline',
         sub { shift->{name} = "foo\nbar" },
-        "value is not a valid term (name) [Validation: 1.0.0]",
+        "'foo\nbar' is not a valid term (name) [Validation: 1.0.0]",
     ],
     [
         'name with return',
         sub { shift->{name} = "foo\rbar" },
-        "value is not a valid term (name) [Validation: 1.0.0]",
+        "'foo\rbar' is not a valid term (name) [Validation: 1.0.0]",
     ],
     [
         'name with slash',
         sub { shift->{name} = "foo/bar" },
-        "value is not a valid term (name) [Validation: 1.0.0]",
+        "'foo/bar' is not a valid term (name) [Validation: 1.0.0]",
     ],
     [
         'name with backslash',
         sub { shift->{name} = "foo\\bar" },
-        "value is not a valid term (name) [Validation: 1.0.0]",
+        "'foo\\bar' is not a valid term (name) [Validation: 1.0.0]",
     ],
     [
         'name with space',
         sub { shift->{name} = "foo bar" },
-        "value is not a valid term (name) [Validation: 1.0.0]",
+        "'foo bar' is not a valid term (name) [Validation: 1.0.0]",
     ],
     [
         'short name',
@@ -304,12 +337,12 @@ for my $spec (
     [
         'empty tag',
         sub { shift->{tags} = '' },
-        "value is not a valid tag (tags -> <undef>) [Validation: 1.0.0]",
+        "'' is not a valid tag (tags -> <undef>) [Validation: 1.0.0]",
     ],
     [
         'empty tag item',
         sub { shift->{tags} = ['foo', ''] },
-        "value is not a valid tag (tags -> <undef>) [Validation: 1.0.0]",
+        "'' is not a valid tag (tags -> <undef>) [Validation: 1.0.0]",
     ],
     [
         'undef tag item',
@@ -365,6 +398,56 @@ for my $spec (
         'no_index bad key',
         sub { shift->{no_index}{foo} = ['hi'] },
         "Custom key 'foo' must begin with 'x_' or 'X_'. (no_index -> foo) [Validation: 1.0.0]",
+    ],
+    [
+        'prereq undef version',
+        sub { shift->{prereqs}{runtime}{requires}{PostgreSQL} = undef },
+        "'<undef>' for 'PostgreSQL' is not a valid version. (prereqs -> runtime -> requires -> PostgreSQL) [Validation: 1.0.0]",
+    ],
+    [
+        'prereq invalid version',
+        sub { shift->{prereqs}{runtime}{requires}{PostgreSQL} = '1.0' },
+        "'1.0' for 'PostgreSQL' is not a valid version. (prereqs -> runtime -> requires -> PostgreSQL) [Validation: 1.0.0]",
+    ],
+    [
+        'prereq undef version',
+        sub { shift->{prereqs}{runtime}{requires}{PostgreSQL} = undef },
+        "'<undef>' for 'PostgreSQL' is not a valid version. (prereqs -> runtime -> requires -> PostgreSQL) [Validation: 1.0.0]",
+    ],
+    [
+        'prereq invalid version op',
+        sub { shift->{prereqs}{runtime}{requires}{PostgreSQL} = '= 1.0.0' },
+        "'=' for 'PostgreSQL' is not a valid version range operator (prereqs -> runtime -> requires -> PostgreSQL) [Validation: 1.0.0]",
+    ],
+    [
+        'prereq wtf version op',
+        sub { shift->{prereqs}{runtime}{requires}{PostgreSQL} = '*** 1.0.0' },
+        "'***' for 'PostgreSQL' is not a valid version range operator (prereqs -> runtime -> requires -> PostgreSQL) [Validation: 1.0.0]",
+    ],
+    [
+        'prereq verersion leading comma',
+        sub { shift->{prereqs}{runtime}{requires}{PostgreSQL} = ',1.0.0' },
+        "'<undef>' for 'PostgreSQL' is not a valid version. (prereqs -> runtime -> requires -> PostgreSQL) [Validation: 1.0.0]",
+    ],
+    [
+        'invalid prereq phase',
+        sub { shift->{prereqs}{howdy}{requires}{PostgreSQL} = '1.0.0' },
+        "Key 'howdy' is not a legal phase. (prereqs -> howdy) [Validation: 1.0.0]",
+    ],
+    [
+        'invalid prereq phase',
+        sub { shift->{prereqs}{runtime}{wanking}{PostgreSQL} = '1.0.0' },
+        "Key 'wanking' is not a legal prereq relationship. (prereqs -> runtime -> wanking) [Validation: 1.0.0]",
+    ],
+    [
+        'non-map prereq',
+        sub { shift->{prereqs}{runtime}{requires} = [ PostgreSQL => '1.0.0' ] },
+        "Expected a map structure. (prereqs -> runtime -> requires) [Validation: 1.0.0]",
+    ],
+    [
+        'non-term prereq',
+        sub { shift->{prereqs}{runtime}{requires}{'foo/bar'} = '1.0.0' },
+        "'foo/bar' is not a valid term (prereqs -> runtime -> requires -> foo/bar) [Validation: 1.0.0]",
     ],
 ) {
     my ($desc, $sub, $err) = @{ $spec };

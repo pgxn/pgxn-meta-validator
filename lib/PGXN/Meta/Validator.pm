@@ -521,7 +521,7 @@ sub _string_class {
         }
         return 1;
     } else {
-        $self->_error("value is not a valid $type");
+        $self->_error("'$value' is not a valid $type");
         return 0;
     }
 }
@@ -543,13 +543,24 @@ sub file {
 
 sub exversion {
     my ($self,$key,$value) = @_;
-    if(defined $value && ($value || $value =~ /0/)) {
+    if (defined $value && ($value || $value eq '0')) {
         my $pass = 1;
-        for my $val (split ',', $value) {
-            unless (defined $val && (
-                $val eq '0' || eval { SemVer->new($val) }
-            )) {
-                $self->_error( "'$val' for '$key' is not a valid version." );
+        for my $val (split /,\s*/, $value) {
+            if ($val ne '') {
+                next if $val eq '0';
+                if ($val =~ s/^([^\d\s]+)\s*//) {
+                    my $op = $1;
+                    if ($op !~ /^[<>](?:=)?|==|!=$/) {
+                        $self->_error("'$op' for '$key' is not a valid version range operator");
+                        $pass = 0;
+                    }
+                }
+                unless (eval { SemVer->new($val) }) {
+                    $self->_error( "'$val' for '$key' is not a valid version." );
+                    $pass = 0;
+                }
+            } else {
+                $self->_error( "'<undef>' for '$key' is not a valid version." );
                 $pass = 0;
             }
         }
