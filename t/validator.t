@@ -90,6 +90,17 @@ for my $spec (
     ['no generated_by' => sub { delete shift->{generated_by} }],
     ['one tag' => sub { shift->{tags} = 'foo' }],
     ['no tags' => sub { shift->{tags} = [] }],
+    ['no index file' => sub { shift->{no_index}{file} = ['foo']} ],
+    ['no index empty file' => sub { shift->{no_index}{file} = []} ],
+    ['no index file string' => sub { shift->{no_index}{file} = 'foo'} ],
+    ['no index directory' => sub { shift->{no_index}{directory} = ['foo']} ],
+    ['no index empty directory' => sub { shift->{no_index}{directory} = []} ],
+    ['no index directory string' => sub { shift->{no_index}{directory} = 'foo'} ],
+    ['no index file and directory' => sub { shift->{no_index} = {
+        file => [qw(foo bar)],
+        directory => 'baz',
+    }}],
+    ['no index custom key' => sub { shift->{no_index}{X_foo} = 1 }],
 ) {
     my ($desc, $sub) = @{ $spec };
     my $dm = clone $distmeta;
@@ -309,6 +320,51 @@ for my $spec (
         'long tag',
         sub { shift->{tags} = 'x' x 257 },
         "tag value must be no more than 256 characters (tags -> xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx) [Validation: 1.0.0]",
+    ],
+    [
+        'no_index empty file string',
+        sub { shift->{no_index}{file} = '' },
+        'value is an undefined string (no_index -> file -> <undef>) [Validation: 1.0.0]',
+    ],
+    [
+        'no_index undef file string',
+        sub { shift->{no_index}{file} = undef },
+        'Expected a list structure (no_index -> file) [Validation: 1.0.0]',
+    ],
+    [
+        'no_index empty file array string',
+        sub { shift->{no_index}{file} = [''] },
+        'value is an undefined string (no_index -> file -> <undef>) [Validation: 1.0.0]',
+    ],
+    [
+        'no_index undef file array string',
+        sub { shift->{no_index}{file} = [undef] },
+        "value is an undefined string (no_index -> file -> <undef>) [Validation: 1.0.0]",
+    ],
+    [
+        'no_index empty directory string',
+        sub { shift->{no_index}{directory} = '' },
+        'value is an undefined string (no_index -> directory -> <undef>) [Validation: 1.0.0]',
+    ],
+    [
+        'no_index undef directory string',
+        sub { shift->{no_index}{directory} = undef },
+        'Expected a list structure (no_index -> directory) [Validation: 1.0.0]',
+    ],
+    [
+        'no_index empty directory array string',
+        sub { shift->{no_index}{directory} = [''] },
+        'value is an undefined string (no_index -> directory -> <undef>) [Validation: 1.0.0]',
+    ],
+    [
+        'no_index undef directory array string',
+        sub { shift->{no_index}{directory} = [undef] },
+        "value is an undefined string (no_index -> directory -> <undef>) [Validation: 1.0.0]",
+    ],
+    [
+        'no_index bad key',
+        sub { shift->{no_index}{foo} = ['hi'] },
+        "Custom key 'foo' must begin with 'x_' or 'X_'. (no_index -> foo) [Validation: 1.0.0]",
     ],
 ) {
     my ($desc, $sub, $err) = @{ $spec };

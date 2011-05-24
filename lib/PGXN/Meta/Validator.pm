@@ -46,8 +46,8 @@ my %known_specs = (
 my %known_urls = map {$known_specs{$_} => $_} keys %known_specs;
 
 my $no_index = {
-    'map'       => { file       => { list => { value => \&string } },
-                     directory  => { list => { value => \&string } },
+    'map'       => { file       => { lazylist => { value => \&string } },
+                     directory  => { lazylist => { value => \&string } },
                     ':key'      => { name => \&custom, value => \&anything },
     }
 };
