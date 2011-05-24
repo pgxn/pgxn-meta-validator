@@ -89,7 +89,7 @@ my %definitions = (
                 ':key' => { name => \&custom, value => \&anything },
             }
         },
-        'name'                => { mandatory => 1, value => \&string  },
+        'name'                => { mandatory => 1, value => \&term  },
         'release_status'      => { mandatory => 1, value => \&release_status },
         'version'             => { mandatory => 1, value => \&version },
         'provides'    => {

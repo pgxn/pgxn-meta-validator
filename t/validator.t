@@ -85,6 +85,8 @@ for my $spec (
     ['provides custom key' => sub { shift->{provides}{pgtap}{x_foo} = 1 }],
     ['no spec url' => sub { delete shift->{'meta-spec'}{url} }],
     ['meta-spec custom key' => sub { shift->{'meta-spec'}{x_foo} = 1 }],
+    ['multibyte name' => sub { shift->{name} = 'yoŭknow'}],
+    ['name with dash' => sub { shift->{name} = 'foo-bar' }],
 ) {
     my ($desc, $sub) = @{ $spec };
     my $dm = clone $distmeta;
@@ -239,6 +241,36 @@ for my $spec (
         'bad spec URL',
         sub { shift->{'meta-spec'}{url} = 'not a url' },
         "'not a url' for 'url' does not have a URL scheme (meta-spec -> url) [Validation: 1.0.0]",
+    ],
+    [
+        'name with newline',
+        sub { shift->{name} = "foo\nbar" },
+        "value is not a valid term (name) [Validation: 1.0.0]",
+    ],
+    [
+        'name with return',
+        sub { shift->{name} = "foo\rbar" },
+        "value is not a valid term (name) [Validation: 1.0.0]",
+    ],
+    [
+        'name with slash',
+        sub { shift->{name} = "foo/bar" },
+        "value is not a valid term (name) [Validation: 1.0.0]",
+    ],
+    [
+        'name with backslash',
+        sub { shift->{name} = "foo\\bar" },
+        "value is not a valid term (name) [Validation: 1.0.0]",
+    ],
+    [
+        'name with space',
+        sub { shift->{name} = "foo bar" },
+        "value is not a valid term (name) [Validation: 1.0.0]",
+    ],
+    [
+        'short name',
+        sub { shift->{name} = "f" },
+        "term value must be at least 2 characters (name) [Validation: 1.0.0]",
     ],
 ) {
     my ($desc, $sub, $err) = @{ $spec };
