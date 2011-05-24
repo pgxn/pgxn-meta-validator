@@ -72,7 +72,15 @@ my %definitions = (
         'abstract'            => { mandatory => 1, value => \&string  },
         'maintainer'          => { mandatory => 1, lazylist => { value => \&string } },
         'generated_by'        => { mandatory => 1, value => \&string  },
-        'license'             => { mandatory => 1, lazylist => { value => \&license } },
+        'license'             => {
+            mandatory => 1,
+            listormap => {
+                lazylist => { value => \&license },
+                map => {
+                    ':key' => { name => \&anything, value => \&url }
+                },
+            }
+        },
         'meta-spec' => {
             mandatory => 1,
             'map' => {
@@ -258,6 +266,8 @@ sub check_map {
                 $self->check_list($spec->{$key}{'list'},$data->{$key});
             } elsif($spec->{$key}{'lazylist'}) {
                 $self->check_lazylist($spec->{$key}{'lazylist'},$data->{$key});
+            } elsif($spec->{$key}{'listormap'}) {
+                $self->check_listormap($spec->{$key}{'listormap'},$data->{$key});
             } else {
                 $self->_error( "$spec_error for '$key'" );
             }
@@ -272,6 +282,8 @@ sub check_map {
                 $self->check_list($spec->{':key'}{'list'},$data->{$key});
             } elsif($spec->{':key'}{'lazylist'}) {
                 $self->check_lazylist($spec->{':key'}{'lazylist'},$data->{$key});
+            } elsif($spec->{':key'}{'listormap'}) {
+                $self->check_listormap($spec->{':key'}{'listormap'},$data->{$key});
             } else {
                 $self->_error( "$spec_error for ':key'" );
             }
@@ -293,6 +305,14 @@ sub check_lazylist {
     }
 
     $self->check_list($spec,$data);
+}
+
+sub check_listormap {
+    my ($self,$spec,$data) = @_;
+
+    return ref $data eq 'HASH'
+        ? $self->check_map($spec->{map}, $data)
+        : $self->check_lazylist($spec->{lazylist}, $data);
 }
 
 sub check_list {
@@ -319,6 +339,8 @@ sub check_list {
             $self->check_list($spec->{'list'},$value);
         } elsif(defined $spec->{'lazylist'}) {
             $self->check_lazylist($spec->{'lazylist'},$value);
+        } elsif(defined $spec->{'listormap'}) {
+            $self->check_listormap($spec->{'listormap'},$value);
         } elsif ($spec->{':key'}) {
             $self->check_map($spec,$value);
         } else {

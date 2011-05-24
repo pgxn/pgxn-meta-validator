@@ -4,6 +4,7 @@ use Test::More 0.88;
 
 use PGXN::Meta;
 use PGXN::Meta::Validator;
+use Clone qw(clone);
 
 my $distmeta = {
     name     => 'pgTAP',
@@ -68,34 +69,119 @@ my $distmeta = {
     X_deep => { deep => 'structure' },
 };
 
-VALID: {
-    my $pmv = PGXN::Meta::Validator->new({%{ $distmeta }});
-    ok $pmv->is_valid, "META 1.0.0 validates"
+# Valid metadata.
+for my $spec (
+    ['unchanged'       => sub { } ],
+    ['maintainer string' => sub { shift->{maintainer} = 'David Wheeler <theory@pgxn.org>' }],
+    ['license string' => sub { shift->{license} = 'postgresql' }],
+    ['multiple licenses' => sub { shift->{license} = [qw(postgresql perl_5)] }],
+    ['license hash' => sub { shift->{license} = { foo => 'http://foo.com' } }],
+    ['multilicense hash' => sub { shift->{license} = {
+        foo => 'http://foo.com',
+        bar => 'http://bar.com',
+    } }],
+) {
+    my ($desc, $sub) = @{ $spec };
+    my $dm = clone $distmeta;
+    $sub->($dm);
+    my $pmv = PGXN::Meta::Validator->new($dm);
+    ok $pmv->is_valid, "Should be valid with $desc"
         or diag "ERRORS:\n" . join "\n", $pmv->errors;
 }
 
 for my $spec (
-    ['no name'       => sub { delete shift->{name} } ],
-    ['no version'    => sub { delete shift->{version} } ],
-    ['no abstract'   => sub { delete shift->{abstract} } ],
-    ['no maintainer' => sub { delete shift->{maintainer} } ],
-    ['no license'    => sub { delete shift->{license} } ],
-    ['no meta-spec'  => sub { delete shift->{'meta-spec'} } ],
-    ['no provides'   => sub { delete shift->{provides} } ],
-    ['bad version'   => sub { shift->{version} = '1.0' } ],
-    ['version zero'  => sub { shift->{version} = '0' } ],
-    ['provides version 0' => sub { shift->{provides}{pgtap}{version} = '0' }],
-    ['bad provides version' => sub { shift->{provides}{pgtap}{version} = 'hi' }],
-    ['bad prereq version' => sub {
-         $_[0]->{provides}{pgtap}{version} = "0.26.0";
-         shift->{prereqs}{runtime}{requires}{plpgsql} = '1.2b1';
-     }],
+    [
+        'no name',
+        sub { delete shift->{name} },
+        "Missing mandatory field, 'name' (name) [Validation: 1.0.0]",
+    ],
+    [
+        'no version',
+        sub { delete shift->{version} },
+        "Missing mandatory field, 'version' (version) [Validation: 1.0.0]",
+    ],
+    [
+        'no abstract',
+        sub { delete shift->{abstract} },
+        "Missing mandatory field, 'abstract' (abstract) [Validation: 1.0.0]",
+    ],
+    [
+        'no maintainer',
+        sub { delete shift->{maintainer} },
+        "Missing mandatory field, 'maintainer' (maintainer) [Validation: 1.0.0]",
+    ],
+    [
+        'no license',
+        sub { delete shift->{license} },
+        "Missing mandatory field, 'license' (license) [Validation: 1.0.0]",
+    ],
+    [
+        'no meta-spec',
+        sub { delete shift->{'meta-spec'} },
+        "Missing mandatory field, 'version' (meta-spec -> version) [Validation: 1.0.0]",
+    ],
+    [
+        'no provides',
+        sub { delete shift->{provides} },
+        "Missing mandatory field, 'provides' (provides) [Validation: 1.0.0]",
+    ],
+    [
+        'bad version',
+        sub { shift->{version} = '1.0' },
+        "'1.0' for 'version' is not a valid version. (version) [Validation: 1.0.0]",
+    ],
+    [
+        'version zero',
+        sub { shift->{version} = '0' },
+        "'0' for 'version' is not a valid version. (version) [Validation: 1.0.0]",
+    ],
+    [
+        'provides version 0',
+        sub { shift->{provides}{pgtap}{version} = '0' },
+        "'0' for 'version' is not a valid version. (provides -> pgtap -> version) [Validation: 1.0.0]",
+    ],
+    [
+        'bad provides version',
+        sub { shift->{provides}{pgtap}{version} = 'hi' },
+        "'hi' for 'version' is not a valid version. (provides -> pgtap -> version) [Validation: 1.0.0]",
+    ],
+    [
+        'bad prereq version',
+        sub { shift->{prereqs}{runtime}{requires}{plpgsql} = '1.2b1' },
+        "'1.2b1' for 'plpgsql' is not a valid version. (prereqs -> runtime -> requires -> plpgsql) [Validation: 1.0.0]",
+    ],
+    [
+        'invalid key',
+        sub { shift->{foo} = 1 },
+        "Custom key 'foo' must begin with 'x_' or 'X_'. (foo) [Validation: 1.0.0]",
+    ],
+    [
+        'invalid license',
+        sub { shift->{license} = 'gobbledygook' },
+        "License 'gobbledygook' is invalid (license -> gobbledygook) [Validation: 1.0.0]",
+    ],
+    [
+        'invalid licenses',
+        sub { shift->{license} = [ 'bsd', 'gobbledygook' ] },
+        "License 'gobbledygook' is invalid (license -> gobbledygook) [Validation: 1.0.0]",
+    ],
+    [
+        'invalid license URL',
+        sub { shift->{license} = { 'foo' => 'not a URL' } },
+        "'not a URL' for 'foo' does not have a URL scheme (license -> foo) [Validation: 1.0.0]",
+    ],
+    [
+        'second invalid license URL',
+        sub { shift->{license} = { 'foo' => 'http://foo.com/', bar => 'not a URL' } },
+        "'not a URL' for 'bar' does not have a URL scheme (license -> bar) [Validation: 1.0.0]",
+    ],
 ) {
-    my ($desc, $sub) = @{ $spec };
-    my %dm = %{ $distmeta };
-    $sub->(\%dm);
-    my $pmv = PGXN::Meta::Validator->new(\%dm);
+    my ($desc, $sub, $err) = @{ $spec };
+    my $dm = clone $distmeta;
+    $sub->($dm);
+    my $pmv = PGXN::Meta::Validator->new($dm);
     ok !$pmv->is_valid, "Should be invalid with $desc";
+    is [$pmv->errors]->[0], $err, "Should get error for $desc";
 }
 
 done_testing;
