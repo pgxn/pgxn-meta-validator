@@ -1,71 +1,16 @@
 use strict;
 use warnings;
 use Test::More 0.88;
+use JSON;
+use File::Spec;
 
 use PGXN::Meta::Validator;
-use Clone qw(clone);
 
-my $distmeta = {
-    name     => 'pgTAP',
-    abstract => 'TAP-driven unit testing for PostgreSQL',
-    description => 'pgTAP is a suite of database functions that make it easy '
-                 . 'to write TAP-emitting unit tests in psql scripts or xUnit-'
-                 . 'style test functions.',
-    version  => '0.24.0',
-    maintainer => [
-        'David Wheeler <theory@pgxn.org>',
-        'pgTAP List <pgtap-users@pgfoundry.org>'  # additional contact
-    ],
-    release_status => 'stable',
-    license  => [ 'postgresql' ],
-    prereqs => {
-        runtime => {
-            requires => {
-                'PostgreSQL' => '8.0.0',
-                'plpgsql'    => '0',
-            },
-            recommends => {
-                'PostgreSQL' => '8.4.0',
-            },
-        },
-        build => {
-            requires => {
-                'plperl' => '0',
-            },
-        }
-    },
-    provides => {
-        pgtap => {
-            abstract => "Unit testing for PostgreSQL",
-            file => "pgtap.sql",
-            version => "0.26.0"
-        }
-    },
-    resources => {
-        'homepage' => 'http://pgtap.org/',
-        'bugtracker' => {
-            'web' => 'https://github.com/theory/pgtap/issues'
-        },
-        'repository' => {
-            'url' =>  'https://github.com/theory/pgtap.git',
-            'web' =>  'https://github.com/theory/pgtap',
-            'type' => 'git'
-        }
-    },
-    'tags' => [
-        "testing",
-        "unit testing",
-        "tap",
-        "tddd",
-        "test driven database development"
-    ],
-    'meta-spec' => {
-        version => '1.0.0',
-    url     => 'http://pgxn.org/meta/spec.txt',
-    },
-    generated_by => 'David E. Wheeler',
-    x_authority => 'cpan:FLORA',
-    X_deep => { deep => 'structure' },
+my $json = do {
+    my $file = File::Spec->catfile(qw(t META.json));
+    local $/;
+    open my $fh, '<:raw', $file or die "Cannot open $file: $!\n";
+    <$fh>;
 };
 
 # Valid metadata.
@@ -239,7 +184,7 @@ for my $spec (
     ],
 ) {
     my ($desc, $sub) = @{ $spec };
-    my $dm = clone $distmeta;
+    my $dm = decode_json $json;
     $sub->($dm);
     my $pmv = PGXN::Meta::Validator->new($dm);
     ok $pmv->is_valid, "Should be valid with $desc"
@@ -629,7 +574,7 @@ for my $spec (
     ],
 ) {
     my ($desc, $sub, $err) = @{ $spec };
-    my $dm = clone $distmeta;
+    my $dm = decode_json $json;
     $sub->($dm);
     my $pmv = PGXN::Meta::Validator->new($dm);
     ok !$pmv->is_valid, "Should be invalid with $desc";

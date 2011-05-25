@@ -8,7 +8,6 @@ Module::Build->new(
     create_makefile_pl => 'traditional',
     configure_requires => { 'Module::Build' => '0.30' },
     build_requires     => {
-        'Clone'         => 0,
         'Module::Build' => '0.30',
         'Test::More'    => '0.88',
     },
