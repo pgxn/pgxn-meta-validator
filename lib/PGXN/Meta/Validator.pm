@@ -90,7 +90,7 @@ my %definitions = (
             }
         },
         'name'                => { mandatory => 1, value => \&term  },
-        'release_status'      => { mandatory => 1, value => \&release_status },
+        'release_status'      => { mandatory => 0, value => \&release_status },
         'version'             => { mandatory => 1, value => \&version },
         'provides'    => {
             'mandatory' => 1,
@@ -120,7 +120,7 @@ my %definitions = (
                 bugtracker => {
                     'map' => {
                         web => { value => \&url },
-                        mailto => { value => \&string},
+                        mailto => { value => \&email},
                         ':key' => { name => \&custom, value => \&anything },
                     }
                 },
@@ -128,7 +128,7 @@ my %definitions = (
                     'map' => {
                         web => { value => \&url },
                         url => { value => \&url },
-                        type => { value => \&string },
+                        type => { value => \&lc_string },
                         ':key' => { name => \&custom, value => \&anything },
                     }
                 },
@@ -455,6 +455,7 @@ sub _uri_split {
 sub url {
     my ($self,$key,$value) = @_;
     if(defined $value) {
+      # XXX Consider using Data::Validate::URI.
       my ($scheme, $auth, $path, $query, $frag) = _uri_split($value);
       unless ( defined $scheme && length $scheme ) {
         $self->_error( "'$value' for '$key' does not have a URL scheme" );
@@ -466,7 +467,7 @@ sub url {
       }
       return 1;
     }
-    $value ||= '';
+    $value = '<undef>' unless defined $value;
     $self->_error( "'$value' for '$key' is not a valid URL." );
     return 0;
 }
@@ -484,6 +485,14 @@ sub urlspec {
     return 0;
 }
 
+sub email {
+    my ($self, $key, $value) = @_;
+    # XXX Consider using Email::Valid.
+    return 1 if defined $value && $value =~ /@/;
+    $self->_error( "'$value' for '$key' is not a valid email address" );
+    return 0;
+}
+
 sub anything { return 1 }
 
 sub string {
@@ -492,6 +501,14 @@ sub string {
         return 1    if($value || $value =~ /^0$/);
     }
     $self->_error( "value is an undefined string" );
+    return 0;
+}
+
+sub lc_string {
+    my ($self, $key, $value) = @_;
+    $self->string($key, $value) or return 0;
+    return 1 if $value !~ /\p{XPosixUpper}/;
+    $self->_error( "'$value' is not a lowercase string" );
     return 0;
 }
 

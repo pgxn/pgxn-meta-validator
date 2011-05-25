@@ -134,6 +134,78 @@ for my $spec (
         'prereq version 0',
         sub { shift->{prereqs}{runtime}{requires}{PostgreSQL} = 0 },
     ],
+    [
+        'no release status',
+        sub { delete shift->{release_status} },
+    ],
+    (map {
+        my $rel = $_;
+        [
+            "release status $rel",
+            sub { shift->{release_status} = $rel },
+        ],
+    } qw(stable testing unstable)),
+    [
+        'no resources',
+        sub { delete shift->{resources} },
+    ],
+    [
+        'homepage resource',
+        sub { shift->{resources}{homepage} = 'http://foo.com' },
+    ],
+    [
+        'bugtracker resource',
+        sub { shift->{resources}{bugtracker} = {
+            web => 'http://example.com/',
+            mailto => 'foo@bar.com',
+        } },
+    ],
+    [
+        'bugtracker web',
+        sub { shift->{resources}{bugtracker} = {
+            web => 'http://example.com/',
+        } },
+    ],
+    [
+        'bugtracker mailto',
+        sub { shift->{resources}{bugtracker} = {
+            mailto => 'foo@bar.com',
+        } },
+    ],
+    [
+        'bugtracker custom',
+        sub { shift->{resources}{bugtracker} = {
+            x_foo => 'foo',
+        } },
+    ],
+    [
+        'repository resource',
+        sub { shift->{resources}{repository} = {
+            web => 'http://example.com/',
+            url => 'git://example.com/',
+            type => 'git',
+        } },
+    ],
+    [
+        'repository resource url',
+        sub { shift->{resources}{repository} = {
+            url => 'git://example.com/',
+            type => 'git',
+        } },
+    ],
+    [
+        'repository resource web',
+        sub { shift->{resources}{repository} = {
+            web => 'http://example.com/',
+            type => 'git',
+        } },
+    ],
+    [
+        'repository custom',
+        sub { shift->{resources}{repository} = {
+            x_foo => 'foo',
+        } },
+    ],
 ) {
     my ($desc, $sub) = @{ $spec };
     my $dm = clone $distmeta;
@@ -448,6 +520,81 @@ for my $spec (
         'non-term prereq',
         sub { shift->{prereqs}{runtime}{requires}{'foo/bar'} = '1.0.0' },
         "'foo/bar' is not a valid term (prereqs -> runtime -> requires -> foo/bar) [Validation: 1.0.0]",
+    ],
+    [
+        'invalid release status',
+        sub { shift->{release_status} = 'rockin' },
+        "'rockin' for 'release_status' is invalid (release_status) [Validation: 1.0.0]",
+    ],
+    [
+        'undef release status',
+        sub { shift->{release_status} = undef },
+        "'release_status' is not defined (release_status) [Validation: 1.0.0]",
+    ],
+    [
+        'homepage resource undef',
+        sub { shift->{resources}{homepage} = undef },
+        "'<undef>' for 'homepage' is not a valid URL. (resources -> homepage) [Validation: 1.0.0]",
+    ],
+    [
+        'homepage resource non-url',
+        sub { shift->{resources}{homepage} = 'hi' },
+        "'hi' for 'homepage' does not have a URL scheme (resources -> homepage) [Validation: 1.0.0]",
+    ],
+    [
+        'bugtracker resource undef',
+        sub { shift->{resources}{bugtracker} = undef },
+        "Expected a map structure. (resources -> bugtracker) [Validation: 1.0.0]",
+    ],
+    [
+        'bugtracker resource array',
+        sub { shift->{resources}{bugtracker} = ['hi'] },
+        "Expected a map structure. (resources -> bugtracker) [Validation: 1.0.0]",
+    ],
+    [
+        'bugtracker empty invalid key',
+        sub { shift->{resources}{bugtracker} = { foo => 1 } },
+        "Custom key 'foo' must begin with 'x_' or 'X_'. (resources -> bugtracker -> foo) [Validation: 1.0.0]",
+    ],
+    [
+        'bugtracker invalid URL',
+        sub { shift->{resources}{bugtracker} = { web => 'hi' } },
+        "'hi' for 'web' does not have a URL scheme (resources -> bugtracker -> web) [Validation: 1.0.0]",
+    ],
+    [
+        'bugtracker invalid email',
+        sub { shift->{resources}{bugtracker} = { mailto => 'hi' } },
+        "'hi' for 'mailto' is not a valid email address (resources -> bugtracker -> mailto) [Validation: 1.0.0]",
+    ],
+    [
+        'repository resource undef',
+        sub { shift->{resources}{repository} = undef },
+        "Expected a map structure. (resources -> repository) [Validation: 1.0.0]",
+    ],
+    [
+        'repository resource array',
+        sub { shift->{resources}{repository} = ['hi'] },
+        "Expected a map structure. (resources -> repository) [Validation: 1.0.0]",
+    ],
+    [
+        'repository empty invalid key',
+        sub { shift->{resources}{repository} = { foo => 1 } },
+        "Custom key 'foo' must begin with 'x_' or 'X_'. (resources -> repository -> foo) [Validation: 1.0.0]",
+    ],
+    [
+        'repository invalid URL',
+        sub { shift->{resources}{repository} = { url => 'hi' } },
+        "'hi' for 'url' does not have a URL scheme (resources -> repository -> url) [Validation: 1.0.0]",
+    ],
+    [
+        'repository invalid web URL',
+        sub { shift->{resources}{repository} = { web => 'hi' } },
+        "'hi' for 'web' does not have a URL scheme (resources -> repository -> web) [Validation: 1.0.0]",
+    ],
+    [
+        'repository invalid type',
+        sub { shift->{resources}{repository} = { type => 'Foo' } },
+        "'Foo' is not a lowercase string (resources -> repository -> type) [Validation: 1.0.0]",
     ],
 ) {
     my ($desc, $sub, $err) = @{ $spec };
