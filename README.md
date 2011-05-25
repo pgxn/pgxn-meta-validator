@@ -1,4 +1,4 @@
-PGXN/Meta/Validator version 0.10.0
+PGXN/Meta/Validator version 0.11.0
 ==================================
 
 This library's module, PGXN::Meta::Validator, provides a simple Perl interface
