@@ -4,6 +4,8 @@ use 5.010;
 use strict;
 use warnings;
 use SemVer;
+use JSON;
+use Carp qw(croak);
 our $VERSION = v0.10.0;
 
 =head1 Name
@@ -160,7 +162,7 @@ The constructor must be passed a metadata structure.
 =cut
 
 sub new {
-  my ($class,$data) = @_;
+  my ($class, $data) = @_;
 
   # create an attributes hash
   my $self = {
@@ -171,6 +173,30 @@ sub new {
 
   # create the object
   return bless $self, $class;
+}
+
+=head3 C<load_file>
+
+  my $meta = PGXN::Meta::Validator->load_file('META.json');
+
+Reads in the specified JSON file and passes the resulting data structure to
+C<new()>, returning the resulting PGXN::Meta::Validator object. An exception
+will be thrown if the file does not exist or if its contents are not valid
+JSON.
+
+=cut
+
+sub load_file {
+    my ($class, $file) = @_;
+
+    croak "load_file() requires a valid, readable filename"
+        unless -r $file;
+
+    $class->new(JSON->new->decode(do {
+        local $/;
+        open my $fh, '<:raw', $file or croak "Cannot open $file: $!\n";
+        <$fh>;
+    }));
 }
 
 =head2 Instance Methods

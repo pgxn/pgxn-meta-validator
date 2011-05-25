@@ -14,6 +14,7 @@ Module::Build->new(
     },
     requires => {
         'Carp'   => 0,
+        'JSON'   => 0,
         'perl'   => 5.010,
         'SemVer' => '0.2.0',
     },
