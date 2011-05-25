@@ -1,8 +1,9 @@
-PGXN/Meta version 0.12.2
-=======================
+PGXN/Meta/Validator version 0.10.0
+==================================
 
-This library's module, PGXN::Meta, provides a simple Perl interface to the PGXN
-Web API. It's designed to work with any PGXN mirror or API server.
+This library's module, PGXN::Meta::Validator, provides a simple Perl interface
+to validate the metadata read from a `META.json` file to ensure that it
+adheres to the L<PGXN Meta Spec|http://pgxn.org/spec/>.
 
 INSTALLATION
 
@@ -23,9 +24,9 @@ Or, if you don't have Module::Build installed, type the following:
 Dependencies
 ------------
 
-PGXN-Meta requires the following modules:
+PGXN-Meta::Validator requires the following modules:
 
-* perl 5.8.1
+* perl 5.10.0
 
 Copyright and Licence
 ---------------------

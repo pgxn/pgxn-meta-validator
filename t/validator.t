@@ -2,7 +2,6 @@ use strict;
 use warnings;
 use Test::More 0.88;
 
-use PGXN::Meta;
 use PGXN::Meta::Validator;
 use Clone qw(clone);
 

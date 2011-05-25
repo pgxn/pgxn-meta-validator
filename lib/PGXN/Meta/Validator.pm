@@ -4,10 +4,11 @@ use 5.010;
 use strict;
 use warnings;
 use SemVer;
+our $VERSION = v0.10.0;
 
 =head1 Name
 
-PGXN::Meta - Validate PGXN distribution metadata structures
+PGXN::Meta::Validator - Validate PGXN distribution metadata structures
 
 =head1 Synopsis
 

@@ -1,10 +1,4 @@
-Revision history for Perl extension PGXN-Meta.
+Revision history for Perl extension PGXN-Meta-Validator.
 
-0.12.2
-
-0.12.1  2011-05-12T18:11:02
-      - Fixed test failures on Windows.
-      - Support Perl 5.10 and higher. Tests were failing on 5.8.
-
-0.12.0  2011-04-29T21:50:27
+0.10.0  
       - Initial public release on CPAN.

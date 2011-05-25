@@ -1,6 +1,6 @@
 _build
 blib
-PGXN-Meta-*
+PGXN-Meta-Validator-*
 MANIFEST
 MANIFEST.bak
 /META.*
