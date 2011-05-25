@@ -51,8 +51,8 @@ finally dumping the whole set into a structure or string.
 
 =cut
 
-sub __legal_phases { qw(configure build test runtime develop)   }
-sub __legal_types  { qw(requires recommends suggests conflicts) }
+sub __legal_phases { qw(configure build test runtime develop) }
+sub __legal_types  { qw(requires recommends suggests)         }
 
 # expect a prereq spec from META.json -- rjbs, 2010-04-11
 sub new {
