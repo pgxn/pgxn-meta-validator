@@ -344,6 +344,10 @@ sub check_listormap {
 
 =over
 
+=item * anything($self,$key,$value)
+
+Any value is valid, so this function always returns true.
+
 =item * header($self,$key,$value)
 
 Validates that the header is valid.
@@ -353,6 +357,10 @@ Note: No longer used as we now read the data structure, not the file.
 =item * url($self,$key,$value)
 
 Validates that a given value is in an acceptable URL format
+
+=item * email($self,$key,$value)
+
+Validates that a given value is in an acceptable EMAIL format
 
 =item * urlspec($self,$key,$value)
 
@@ -368,10 +376,29 @@ defined.
 
 Validates that a string exists for the given key.
 
+=item * lc_string($self,$key,$value)
+
+Validates that a string exists for the given key and contains only lowercase
+characters.
+
 =item * file($self,$key,$value)
 
 Validate that a file is passed for the given key. This may be made more
 thorough in the future. For now it acts like \&string.
+
+=item * phase($self,$key,$value)
+
+Validate that a prereq phase is one of "configure", "build", "test",
+"runtime", or "develop".
+
+=item * relation($self,$key,$value)
+
+Validate that a prereq relation is one of "requires", "recommends", or
+"suggests".
+
+=item * release_status($self,$key,$value)
+
+Validate that release status is one of "stable", "testing", or "unstable".
 
 =item * exversion($self,$key,$value)
 
@@ -430,19 +457,11 @@ sub header {
 
 sub release_status {
   my ($self,$key,$value) = @_;
-  if(defined $value) {
-    my $version = $self->{data}{version} || '';
-    if ( $version =~ /_/ ) {
-      return 1 if ( $value =~ /\A(?:testing|unstable)\z/ );
-      $self->_error( "'$value' for '$key' is invalid for version '$version'" );
-    }
-    else {
-      return 1 if ( $value =~ /\A(?:stable|testing|unstable)\z/ );
+  if (defined $value) {
+      return 1 if $value =~ /\A(?:(?:un)?stable|testing)\z/;
       $self->_error( "'$value' for '$key' is invalid" );
-    }
-  }
-  else {
-    $self->_error( "'$key' is not defined" );
+  } else {
+      $self->_error( "'$key' is not defined" );
   }
   return 0;
 }
@@ -687,7 +706,7 @@ sub phase {
     return 0;
 }
 
-my @valid_relations = qw/ requires recommends suggests conflicts /;
+my @valid_relations = qw/ requires recommends suggests /;
 sub relation {
     my ($self,$key) = @_;
     if(defined $key) {
