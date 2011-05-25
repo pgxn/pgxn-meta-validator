@@ -190,7 +190,158 @@ and with any L<PGXN::API>-powered server.
 
 =head1 Interface
 
+=head2 Constructors
 
+=head3 C<new>
+
+  my $meta = PGXN::Meta->new($data);
+
+Constructs and returns a new PGXN::Meta object. Pass in a hash reference of
+the metadata. If the metadata is invalid, an exception will be thrown.
+
+=head3 C<load_file>
+
+  my $meta = PGXN::Meta->load_file('META.json');
+
+Reads in the specified JSON file and uses it to construct and return a new
+PGXN::Meta object. If the metadata is invalid, an exception will be thrown.
+
+=head2 Accessors
+
+=head3 C<abstract>
+
+  my $abstract = $meta->abstract;
+
+Returns the abstract.
+
+=head3 C<description>
+
+  my $description = $meta->description;
+
+Returns the description.
+
+=head3 C<generated_by>
+
+  my $generated_by = $meta->generated_by;
+
+Returns the generated_by field value.
+
+=head3 C<name>
+
+  my $name = $meta->name;
+
+Returns the name.
+
+=head3 C<release_status>
+
+  my $release_status = $meta->release_status;
+
+Returns the release status.
+
+=head3 C<version>
+
+  my $version = $meta->version;
+
+Returns the version.
+
+=head3 C<maintainer>
+
+  my @maintainer = $meta->maintainer;
+
+Returns the list of maintainers.
+
+=head3 C<maintainers>
+
+  my @maintainer = $meta->maintainers;
+
+An alias for C<maintainer>.
+
+=head3 C<tags>
+
+  my @tags = $meta->tags;
+
+Returns the list of tags.
+
+=head3 C<license>
+
+  my $license = $meta->license;
+
+Returns the list of licenses.
+
+=head3 C<licenses>
+
+  my @license = $meta->licenses;
+
+An alias for C<license>.
+
+=head3 C<meta_spec>
+
+  my $meta_spec = $meta->meta_spec;
+
+Returns a hashref containing the meta spec data.
+
+=head3 C<resources>
+
+  my $resources = $meta->resources;
+
+Returns a hashref containing the resources data.
+
+=head3 C<provides>
+
+  my $provides = $meta->provides;
+
+Returns a hashref containing the provides data.
+
+=head3 C<no_index>
+
+  my $no_index = $meta->no_index;
+
+Returns a hashref containing the "no index" data.
+
+=head3 C<prereqs>
+
+  my $prereqs = $meta->prereqs;
+
+Returns a hashref containing the prerequisites data.
+
+=head3 C<meta_spec_version>
+
+  my $meta_spec_version = $meta->meta_spec_version;
+
+Returns the meta spec version.
+
+=head2 Instance Methods
+
+=head3 C<as_struct>
+
+  my $data = $meta->as_struct;
+
+Returns the metadata as a hash reference.
+
+=head3 C<TO_JSON>
+
+  my $json = $meta->TO_JSON;
+
+Returns the metadata as JSON.
+
+=head3 C<effective_prereqs>
+
+my $prereqs = $meta->effective_prereqs;
+
+Returns a L<PGXN::Meta::Prereqs> object encapsulating the prerequisites. This
+object is useful for programmatically modifying the prerequisites.
+
+=head3 C<custom_keys>
+
+  my @custom_keys = $meta->custom_keys;
+
+Returns a list of the custom keys in the top-level of the metadata.
+
+=head3 C<custom>
+
+  my $val = $meta->custom($custom_key);
+
+Returns the value for a custom key in the top-level of the metadata.
 
 =head1 See Also
 
@@ -219,6 +370,11 @@ The inspiration for this module.
 =head1 To Do
 
 =over
+
+=item *
+
+Modify the C<license> accessor to properly handle a hash reference value as
+well as a list.
 
 =item *
 
