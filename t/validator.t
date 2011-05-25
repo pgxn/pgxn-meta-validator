@@ -73,7 +73,39 @@ my $distmeta = {
 for my $spec (
     ['unchanged'       => sub { } ],
     ['maintainer string' => sub { shift->{maintainer} = 'David Wheeler <theory@pgxn.org>' }],
-    ['license string' => sub { shift->{license} = 'postgresql' }],
+    (map {
+        my $l = $_;
+        ["license $l" => sub { shift->{license} = $l }],
+    } qw(
+        agpl_3
+        apache_1_1
+        apache_2_0
+        artistic_1
+        artistic_2
+        bsd
+        freebsd
+        gfdl_1_2
+        gfdl_1_3
+        gpl_1
+        gpl_2
+        gpl_3
+        lgpl_2_1
+        lgpl_3_0
+        mit
+        mozilla_1_0
+        mozilla_1_1
+        openssl
+        perl_5
+        postgresql
+        qpl_1_0
+        ssleay
+        sun
+        zlib
+        open_source
+        restricted
+        unrestricted
+        unknown
+    )),
     ['multiple licenses' => sub { shift->{license} = [qw(postgresql perl_5)] }],
     ['license hash' => sub { shift->{license} = { foo => 'http://foo.com' } }],
     ['multilicense hash' => sub { shift->{license} = {
