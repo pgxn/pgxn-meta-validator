@@ -6,7 +6,7 @@ use warnings;
 use SemVer;
 use JSON;
 use Carp qw(croak);
-our $VERSION = v0.11.0;
+our $VERSION = v0.12.0;
 
 =head1 Name
 
