@@ -13,9 +13,11 @@ Module::Build->new(
     },
     requires => {
         'Carp'   => 0,
-        'JSON'   => 0,
-        'perl'   => 5.010,
-        'SemVer' => '0.2.0',
+        'Getopt::Long' => 0,
+        'JSON'         => 0,
+        'perl'         => 5.010,
+        'Pod::Usage'   => 0,
+        'SemVer'       => '0.2.0',
     },
     recommends => {
         'Test::Pod'           => '1.41',
