@@ -1,6 +1,6 @@
 Revision history for Perl extension PGXN-Meta-Validator.
 
-0.11.0
+0.11.0  2011-05-25T06:01:14
       - Added `validate_pgxn_meta`.
 
 0.10.0  2011-05-25T05:33:38
