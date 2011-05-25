@@ -3,7 +3,7 @@ PGXN/Meta/Validator version 0.10.0
 
 This library's module, PGXN::Meta::Validator, provides a simple Perl interface
 to validate the metadata read from a `META.json` file to ensure that it
-adheres to the L<PGXN Meta Spec|http://pgxn.org/spec/>.
+adheres to the [PGXN Meta Spec](http://pgxn.org/spec/).
 
 INSTALLATION
 
