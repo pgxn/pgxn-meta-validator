@@ -42,7 +42,7 @@ sub _pod2usage {
     require Pod::Usage;
     Pod::Usage::pod2usage(
         '-verbose'  => 99,
-        '-sections' => '(?i:(Usage))',
+        '-sections' => '(?i:(Usage|Options))',
         '-exitval'  => 1,
         '-input'    => __FILE__,
         @_
@@ -59,6 +59,12 @@ validate_pgxn_meta - Validate the structure of a PGXN F<META.json> file
 =head1 Usage
 
   validate_pgxn_meta META.json
+
+=head1 Options
+
+  -h --help     Print a usage statement and exit.
+  -M --man      Print the complete documentation and exit.
+  -v --version  Print the version number and exit.
 
 =head1 Output
 
