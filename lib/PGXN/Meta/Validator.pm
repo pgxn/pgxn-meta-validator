@@ -27,7 +27,8 @@ PGXN::Meta::Validator - Validate PGXN distribution metadata structures
 =head1 Description
 
 This module validates a PGXN Meta structure against the version of the the
-specification claimed in the C<meta-spec> field of the structure.
+specification claimed in the C<meta-spec> field of the structure. Currently,
+there is only v1.0.0.
 
 =cut
 
