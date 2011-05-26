@@ -1,5 +1,7 @@
 Revision history for Perl extension PGXN-Meta-Validator.
 
+0.14.0
+
 0.13.0  2011-05-26T03:52:07
       - Fixed invalid Unicode character class.
 
