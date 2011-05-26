@@ -554,7 +554,7 @@ sub string {
 sub lc_string {
     my ($self, $key, $value) = @_;
     $self->string($key, $value) or return 0;
-    return 1 if $value !~ /\p{XPosixUpper}/;
+    return 1 if $value !~ /\p{Upper}/;
     $self->_error( "'$value' is not a lowercase string" );
     return 0;
 }
