@@ -420,8 +420,8 @@ Validate that a prereq phase is one of "configure", "build", "test",
 
 =item * relation($self,$key,$value)
 
-Validate that a prereq relation is one of "requires", "recommends", or
-"suggests".
+Validate that a prereq relation is one of "requires", "recommends",
+"suggests", or "conflicts".
 
 =item * release_status($self,$key,$value)
 
@@ -733,7 +733,7 @@ sub phase {
     return 0;
 }
 
-my @valid_relations = qw/ requires recommends suggests /;
+my @valid_relations = qw/ requires recommends suggests conflicts/;
 sub relation {
     my ($self,$key) = @_;
     if(defined $key) {

@@ -1,6 +1,7 @@
 Revision history for Perl extension PGXN-Meta-Validator.
 
 0.12.0
+      - Added "conflicts" relationship to prereqs.
 
 0.11.0  2011-05-25T06:01:14
       - Added `validate_pgxn_meta`.

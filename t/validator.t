@@ -85,7 +85,7 @@ for my $spec (
                 "$phase $rel prereq",
                 sub { my $m = shift; $m->{prereqs}{$phase}{$rel} = { foo => '1.2.0' }},
             ]
-        } qw(requires recommends suggests);
+        } qw(requires recommends suggests conflicts);
     } qw(configure runtime build test develop)),
     (map {
         my $op = $_;
