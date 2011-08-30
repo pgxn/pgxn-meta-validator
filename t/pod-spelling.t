@@ -9,10 +9,8 @@ add_stopwords(<DATA>);
 all_pod_files_spelling_ok();
 
 __DATA__
-PostgreSQL
-RDBMS
-Signes
-distmeta
-Prereqs
-prereqs
-
+PGXN
+programmatically
+GitHub
+JSON
+metadata
