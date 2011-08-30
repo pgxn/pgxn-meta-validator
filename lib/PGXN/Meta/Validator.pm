@@ -168,7 +168,9 @@ sub new {
   # create an attributes hash
   my $self = {
     'data'    => $data,
-    'spec'    => $data->{'meta-spec'}{'version'} || "1.0.0",
+    'spec'    => $data->{'meta-spec'} && $data->{'meta-spec'}{version}
+               ? $data->{'meta-spec'}{version}
+               : '1.0.0',
     'errors'  => undef,
   };
 
@@ -271,7 +273,7 @@ sub check_map {
     }
 
     if(ref($data) ne 'HASH') {
-        $self->_error( "Expected a map structure." );
+        $self->_error( 'Should be a map structure' );
         return;
     }
 
@@ -279,7 +281,7 @@ sub check_map {
         next    unless($spec->{$key}->{mandatory});
         next    if(defined $data->{$key});
         push @{$self->{stack}}, $key;
-        $self->_error( "Missing mandatory field, '$key'" );
+        $self->_error( 'missing', 'Required field' );
         pop @{$self->{stack}};
     }
 
@@ -324,39 +326,40 @@ sub check_map {
 sub check_list {
     my ($self,$spec,$data) = @_;
 
-    if ( defined $data && ! ref($data) ) {
-      $data = [ $data ];
-    }
-
-    if(ref($data) ne 'ARRAY') {
-        $self->_error( "Expected a list structure" );
-        return;
-    }
-
-    if(defined $spec->{mandatory}) {
-        if(!defined $data->[0]) {
-            $self->_error( "Missing entries from mandatory list" );
+    if ( defined $data && ! ref $data) {
+        $self->_list_value($spec, $data);
+    } else {
+        $self->_error( 'Should be a list structure' ) if ref $data ne 'ARRAY';
+        $self->_error( "Missing entries from required list" )
+            if defined $spec->{mandatory} && !defined $data->[0];
+        my $field = pop @{ $self->{stack} };
+        my $i = 0;
+        for my $value (@{ $data }) {
+            push @{$self->{stack}}, $field . "[$i]";
+            $i++;
+            $self->_list_value($spec, $value);
+            pop @{$self->{stack}};
         }
+        push @{$self->{stack}}, $field;
     }
+}
 
-    for my $value (@$data) {
-        push @{$self->{stack}}, $value || "<undef>";
-        if(defined $spec->{value}) {
-            $spec->{value}->($self,'list',$value);
-        } elsif(defined $spec->{'map'}) {
-            $self->check_map($spec->{'map'},$value);
-        } elsif(defined $spec->{'list'}) {
-            $self->check_list($spec->{'list'},$value);
-        } elsif(defined $spec->{'list'}) {
-            $self->check_list($spec->{'list'},$value);
-        } elsif(defined $spec->{'listormap'}) {
-            $self->check_listormap($spec->{'listormap'},$value);
-        } elsif ($spec->{':key'}) {
-            $self->check_map($spec,$value);
-        } else {
-          $self->_error( "$spec_error associated with '$self->{stack}[-2]'" );
-        }
-        pop @{$self->{stack}};
+sub _list_value {
+    my ($self, $spec, $value) = @_;
+    if(defined $spec->{value}) {
+        $spec->{value}->($self,'list',$value);
+    } elsif(defined $spec->{'map'}) {
+        $self->check_map($spec->{'map'},$value);
+    } elsif(defined $spec->{'list'}) {
+        $self->check_list($spec->{'list'},$value);
+    } elsif(defined $spec->{'list'}) {
+        $self->check_list($spec->{'list'},$value);
+    } elsif(defined $spec->{'listormap'}) {
+        $self->check_listormap($spec->{'listormap'},$value);
+    } elsif ($spec->{':key'}) {
+        $self->check_map($spec,$value);
+    } else {
+        $self->_error( "$spec_error associated with '$self->{stack}[-2]'" );
     }
 }
 
@@ -375,12 +378,6 @@ sub check_listormap {
 =item * anything($self,$key,$value)
 
 Any value is valid, so this function always returns true.
-
-=item * header($self,$key,$value)
-
-Validates that the header is valid.
-
-Note: No longer used as we now read the data structure, not the file.
 
 =item * url($self,$key,$value)
 
@@ -474,23 +471,11 @@ characters and does not contain control characters, C</>, or C<\>.
 
 =cut
 
-sub header {
-    my ($self,$key,$value) = @_;
-    if(defined $value) {
-        return 1    if($value && $value =~ /^--- #YAML:1.0/);
-    }
-    $self->_error( "file does not have a valid YAML header." );
-    return 0;
-}
-
 sub release_status {
   my ($self,$key,$value) = @_;
-  if (defined $value) {
-      return 1 if $value =~ /\A(?:(?:un)?stable|testing)\z/;
-      $self->_error( "'$value' for '$key' is invalid" );
-  } else {
-      $self->_error( "'$key' is not defined" );
-  }
+  $value = '' unless defined $value;
+  return 1 if $value =~ /\A(?:(?:un)?stable|testing)\z/;
+  $self->_error( qq{"$value" is not a valid release status; must be one of stable, testing, unstable} );
   return 0;
 }
 
@@ -501,21 +486,23 @@ sub _uri_split {
 
 sub url {
     my ($self,$key,$value) = @_;
-    if(defined $value) {
+    if (defined $value && $value ne '') {
       # XXX Consider using Data::Validate::URI.
       my ($scheme, $auth, $path, $query, $frag) = _uri_split($value);
       unless ( defined $scheme && length $scheme ) {
-        $self->_error( "'$value' for '$key' does not have a URL scheme" );
+        $self->_error( qq{"$value" is not a valid URL} );
         return 0;
       }
       unless ( defined $auth && length $auth ) {
-        $self->_error( "'$value' for '$key' does not have a URL maintainerity" );
+        $self->_error( qq{"$value" is not a valid URL} );
         return 0;
       }
       return 1;
+    } else {
+        $self->_error('No value');
+        return 0;
     }
-    $value = '<undef>' unless defined $value;
-    $self->_error( "'$value' for '$key' is not a valid URL." );
+    $self->_error( qq{"$value" is not a valid URL} );
     return 0;
 }
 
@@ -536,7 +523,7 @@ sub email {
     my ($self, $key, $value) = @_;
     # XXX Consider using Email::Valid.
     return 1 if defined $value && $value =~ /@/;
-    $self->_error( "'$value' for '$key' is not a valid email address" );
+    $self->_error( qq{"$value" is not a valid email address} );
     return 0;
 }
 
@@ -547,7 +534,7 @@ sub string {
     if(defined $value) {
         return 1    if($value || $value =~ /^0$/);
     }
-    $self->_error( "value is an undefined string" );
+    $self->_error( "No value" );
     return 0;
 }
 
@@ -555,7 +542,7 @@ sub lc_string {
     my ($self, $key, $value) = @_;
     $self->string($key, $value) or return 0;
     return 1 if $value !~ /\p{Upper}/;
-    $self->_error( "'$value' is not a lowercase string" );
+    $self->_error( qq{"$value" is not a lowercase string} );
     return 0;
 }
 
@@ -570,22 +557,22 @@ sub tag {
 sub _string_class {
     my ($self, $key, $value, $type, $regex, $min, $max) = @_;
     unless (defined $value) {
-        $self->_error( "value is an undefined $type" );
+        $self->_error( 'value is not defined' );
         return 0;
     }
 
     if (($value || $value =~ /^0$/) && $value !~ $regex) {
         if ($min && length $value < $min) {
-            $self->_error("$type value must be at least $min characters");
+            $self->_error("$type must be at least $min characters");
             return 0;
         }
         if ($max && length $value > $max) {
-            $self->_error("$type value must be no more than $max characters");
+            $self->_error("$type must be no more than $max characters");
             return 0;
         }
         return 1;
     } else {
-        $self->_error("'$value' is not a valid $type");
+        $self->_error(qq{"$value" is not a valid $type});
         return 0;
     }
 }
@@ -601,7 +588,7 @@ sub string_or_undef {
 sub file {
     my ($self,$key,$value) = @_;
     return 1    if(defined $value);
-    $self->_error( "No file defined for '$key'" );
+    $self->_error( 'No value' );
     return 0;
 }
 
@@ -615,23 +602,23 @@ sub exversion {
                 if ($val =~ s/^([^\d\s]+)\s*//) {
                     my $op = $1;
                     if ($op !~ /^[<>](?:=)?|==|!=$/) {
-                        $self->_error("'$op' for '$key' is not a valid version range operator");
+                        $self->_error(qq{"$op" is not a valid version range operator});
                         $pass = 0;
                     }
                 }
                 unless (eval { SemVer->new($val) }) {
-                    $self->_error( "'$val' for '$key' is not a valid version." );
+                        # Field /version: Value "0.01.2" is not a valid version [Spec v1.0.0]
+                    $self->_error( qq{"$val" is not a valid semantic version} );
                     $pass = 0;
                 }
             } else {
-                $self->_error( "'<undef>' for '$key' is not a valid version." );
+                $self->_error( qq{"" is not a valid semantic version} );
                 $pass = 0;
             }
         }
         return $pass;
     }
-    $value = '<undef>'  unless(defined $value);
-    $self->_error( "'$value' for '$key' is not a valid version." );
+    $self->_error($value ? qq{value "$value" is not a valid semantic version} : 'No value' );
     return 0;
 }
 
@@ -642,7 +629,7 @@ sub version {
     } else {
         $value = '<undef>';
     }
-    $self->_error( "'$value' for '$key' is not a valid version." );
+   $self->_error( qq{"$value" is not a valid semantic version} );
     return 0;
 }
 
@@ -691,11 +678,11 @@ my %licenses = map { $_ => 1 } qw(
 sub license {
     my ($self,$key,$value) = @_;
     if(defined $value) {
-        return 1    if($value && exists $licenses{$value});
+        return 1 if $value && exists $licenses{$value};
     } else {
         $value = '<undef>';
     }
-    $self->_error( "License '$value' is invalid" );
+    $self->_error( qq{"$value" is an unknown license} );
     return 0;
 }
 
@@ -706,7 +693,7 @@ sub custom {
     } else {
         $key = '<undef>';
     }
-    $self->_error( "Custom key '$key' must begin with 'x_' or 'X_'." );
+    $self->_error( 'Unknown key; custom keys must begin with "x_" or "X_"' );
     return 0;
 }
 
@@ -727,10 +714,8 @@ sub phase {
     if(defined $key) {
         return 1 if( length $key && grep { $key eq $_ } @valid_phases );
         return 1 if $key =~ /x_/i;
-    } else {
-        $key = '<undef>';
     }
-    $self->_error( "Key '$key' is not a legal phase." );
+    $self->_error('Unknown preqreq phase; must be one of ' . join ', ', @valid_phases);
     return 0;
 }
 
@@ -740,19 +725,18 @@ sub relation {
     if(defined $key) {
         return 1 if( length $key && grep { $key eq $_ } @valid_relations );
         return 1 if $key =~ /x_/i;
-    } else {
-        $key = '<undef>';
     }
-    $self->_error( "Key '$key' is not a legal prereq relationship." );
+    $self->_error('Unknown preqreq relationship; must be one of ' . join ', ', @valid_relations);
     return 0;
 }
 
 sub _error {
     my $self = shift;
     my $mess = shift;
+    my $label = shift || 'Field';
 
-    $mess .= ' ('.join(' -> ',@{$self->{stack}}).')'  if($self->{stack});
-    $mess .= " [Validation: $self->{spec}]";
+    $mess = "$label /" . join( '/' => @{ $self->{stack} }) . ": $mess" if $self->{stack};
+    $mess .= " [Spec v$self->{spec}]";
 
     push @{$self->{errors}}, $mess;
 }
@@ -772,3 +756,9 @@ Issues|http://github.com/theory/pgxn-meta/issues/> or by sending mail to
 L<bug-PGXN-Meta@rt.cpan.org|mailto:bug-PGXN-Meta@rt.cpan.org>.
 
 =cut
+
+# '0.01.2' for 'version' is not a valid version. (provides -> pair -> version) [Validation: 1.0.0]
+# Field /provides/pair/version: Value "0.01.2" is not a valid version [Spec v1.0.0]
+# Field /version: Value "0.01.2" is not a valid version [Spec v1.0.0]
+# Field /name: Missing mandatory field [Spec v1.0.0]",
+
