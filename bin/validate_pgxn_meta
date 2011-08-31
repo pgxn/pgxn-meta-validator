@@ -1,4 +1,4 @@
-#!/usr/bin/perl -w
+#!/usr/local/bin/perl -w
 
 use strict;
 use warnings;
@@ -38,11 +38,18 @@ print "$file is invalid. Errors:\n  ",
     "\n";
 exit 1;
 
+
 sub _pod2usage {
     require Pod::Usage;
+
+    my $sections = 'Usage|Options';
+    if ($0 =~ /pgxn-validate-meta/) {
+        print "Usage:\n      pgxn validate-meta META.json\n\n";
+        $sections = 'Options';
+    }
     Pod::Usage::pod2usage(
         '-verbose'  => 99,
-        '-sections' => '(?i:(Usage|Options))',
+        '-sections' => "(?i:($sections))",
         '-exitval'  => 1,
         '-input'    => __FILE__,
         @_

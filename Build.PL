@@ -2,7 +2,28 @@ use strict;
 use warnings;
 use Module::Build;
 
-Module::Build->new(
+my $class = Module::Build->subclass(
+    class => 'My::Builder',
+    code => q{
+        sub ACTION_install {
+            my $self = shift;
+            my $ret = $self->SUPER::ACTION_install(@_);
+            my $pgxn = $self->find_command('pgxn') or return $ret;
+            my $libexec = $self->_backticks($pgxn, 'help', '--libexec');
+            chomp $libexec;
+            if (-d $libexec) {
+                my $dst = File::Spec->catfile($libexec, 'pgxn-validate-meta');
+                $self->log_info("Creating $dst");
+                unlink $dst;
+                link File::Spec->catfile(
+                    $self->install_map->{'blib/script'}, 'validate_pgxn_meta'
+                ), $dst;
+            }
+        }
+    },
+);
+
+$class->new(
     module_name        => 'PGXN::Meta::Validator',
     license            => 'perl',
     create_makefile_pl => 'traditional',
