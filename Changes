@@ -1,5 +1,7 @@
 Revision history for Perl extension PGXN-Meta-Validator.
 
+0.15.0
+
 0.14.0  2011-08-31T03:44:57Z
       - Added tests to protect against autovivication of keys.
       - Rewrote all error messages to be more consistent and informative.
