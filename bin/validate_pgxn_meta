@@ -19,7 +19,7 @@ _pod2usage(
 if ($version) {
     require File::Basename;
     print File::Basename::basename($0), ' ',
-        PGXN::Meta::Validator->VERSION, $/;
+        PGXN::Meta::Validator->version_string, $/;
     exit;
 }
 

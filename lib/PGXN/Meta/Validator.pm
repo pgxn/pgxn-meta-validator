@@ -152,7 +152,7 @@ my %definitions = (
 
 =head1 Interface
 
-=head2 Constructor
+=head2 Constructors
 
 =head3 C<new>
 
@@ -200,6 +200,20 @@ sub load_file {
         open my $fh, '<:raw', $file or croak "Cannot open $file: $!\n";
         <$fh>;
     }));
+}
+
+=head2 Class Method
+
+=head3 C<version_string>
+
+  say 'PGXN::Meta::Validator ', PGXN::Meta::Validator->version_string;
+
+Returns a string representation of the PGXN::Meta::Validator version.
+
+=cut
+
+sub version_string {
+    sprintf 'v%vd', $VERSION;
 }
 
 =head2 Instance Methods
