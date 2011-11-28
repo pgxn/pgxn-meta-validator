@@ -5,6 +5,9 @@ Revision history for Perl extension PGXN-Meta-Validator.
         `validate_pgxn_meta` script.
       - The command-line app now defaults to a file named `META.json` in the
         current directory if no file name is passed.
+      - Fixed installation in the `pgxn` client libexec directory so that it
+        first creates the directory if it does not exist. This is to adjust to
+        a change in `pgxn` 1.0, which does not create the directory by default.
 
 0.14.0  2011-08-31T03:44:57Z
       - Added tests to protect against autovivication of keys.

@@ -11,6 +11,7 @@ my $class = Module::Build->subclass(
             my $pgxn = $self->find_command('pgxn') or return $ret;
             my $libexec = $self->_backticks($pgxn, 'help', '--libexec');
             chomp $libexec;
+            File::Path::mkpath($libexec, 0, 0755);
             if (-d $libexec) {
                 my $dst = File::Spec->catfile($libexec, 'pgxn-validate-meta');
                 $self->log_info("Creating $dst");
