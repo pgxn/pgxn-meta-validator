@@ -3,6 +3,8 @@ Revision history for Perl extension PGXN-Meta-Validator.
 0.15.0
       - Added `version_string` class method and made use of it in the
         `validate_pgxn_meta` script.
+      - The command-line app now defaults to a file named `META.json` in the
+        current directory if no file name is passed.
 
 0.14.0  2011-08-31T03:44:57Z
       - Added tests to protect against autovivication of keys.

@@ -23,7 +23,7 @@ if ($version) {
     exit;
 }
 
-my $file = shift or _pod2usage();
+my $file = shift || -e 'META.json' ? 'META.json' : _pod2usage();
 die "$file is not a valid, readable filename\n" unless -r $file;
 
 my $pmv = PGXN::Meta::Validator->load_file($file);
@@ -38,13 +38,12 @@ print "$file is invalid. Errors:\n  ",
     "\n";
 exit 1;
 
-
 sub _pod2usage {
     require Pod::Usage;
 
     my $sections = 'Usage|Options';
     if ($0 =~ /pgxn-validate-meta/) {
-        print "Usage:\n      pgxn validate-meta META.json\n\n";
+        print "Usage:\n      pgxn validate-meta\n      pgxn validate-meta mumble.json\n\n";
         $sections = 'Options';
     }
     Pod::Usage::pod2usage(
@@ -65,13 +64,20 @@ validate_pgxn_meta - Validate the structure of a PGXN F<META.json> file
 
 =head1 Usage
 
-  validate_pgxn_meta META.json
+  validate_pgxn_meta
+  validate_pgxn_meta mumble.json
 
 =head1 Options
 
   -h --help     Print a usage statement and exit.
   -M --man      Print the complete documentation and exit.
   -v --version  Print the version number and exit.
+
+=head1 Description
+
+Validates a PGXN F<META.json> file against the PGXN meta specification. If a
+file name is passed, that file will be validated. Otherwise, if a file named
+F<META.json> exists in the current directory, it will be validated.
 
 =head1 Output
 
