@@ -762,11 +762,11 @@ __END__
 =head1 Support
 
 This module is stored in an open L<GitHub
-repository|http://github.com/theory/pgxn-meta/>. Feel free to fork and
+repository|http://github.com/pgxn/pgxn-meta/>. Feel free to fork and
 contribute!
 
 Please file bug reports via L<GitHub
-Issues|http://github.com/theory/pgxn-meta/issues/> or by sending mail to
+Issues|http://github.com/pgxn/pgxn-meta/issues/> or by sending mail to
 L<bug-PGXN-Meta@rt.cpan.org|mailto:bug-PGXN-Meta@rt.cpan.org>.
 
 =cut
