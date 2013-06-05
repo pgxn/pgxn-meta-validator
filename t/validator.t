@@ -233,6 +233,11 @@ for my $spec (
         'Field /version: "1.0" is not a valid semantic version [Spec v1.0.0]',
     ],
     [
+        'deprecated version',
+        sub { shift->{version} = '1.0.0v1' },
+        'Field /version: "1.0.0v1" is not a valid semantic version [Spec v1.0.0]',
+    ],
+    [
         'version zero',
         sub { shift->{version} = '0' },
         'Field /version: "0" is not a valid semantic version [Spec v1.0.0]',

@@ -39,7 +39,7 @@ $class->new(
         'JSON'         => 0,
         'perl'         => 5.010,
         'Pod::Usage'   => 0,
-        'SemVer'       => '0.2.0',
+        'SemVer'       => '0.5.0',
     },
     recommends => {
         'Test::Pod'           => '1.41',
