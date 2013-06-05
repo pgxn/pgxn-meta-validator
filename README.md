@@ -31,7 +31,7 @@ PGXN-Meta::Validator requires the following modules:
 Copyright and Licence
 ---------------------
 
-Copyright (c) 2011 David E. Wheeler. Some Rights Reserved.
+Copyright (c) 2011-2013 David E. Wheeler. Some Rights Reserved.
 
 This module is free software; you can redistribute it and/or modify it under
 the same terms as Perl itself.

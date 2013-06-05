@@ -1,6 +1,7 @@
 Revision history for Perl extension PGXN-Meta-Validator.
 
 0.17.0
+      - Added copyright notice to the module.
 
 0.16.0  2013-06-05T06:39:03Z
       - Updated GitHub URLs to point to `/pgxn/` rather than `/theory/`.

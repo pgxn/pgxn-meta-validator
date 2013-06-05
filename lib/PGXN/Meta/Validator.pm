@@ -769,6 +769,14 @@ Please file bug reports via L<GitHub
 Issues|http://github.com/pgxn/pgxn-meta/issues/> or by sending mail to
 L<bug-PGXN-Meta@rt.cpan.org|mailto:bug-PGXN-Meta@rt.cpan.org>.
 
+=head1 Copyright and License
+
+Copyright (c) 2011-2013 David E. Wheeler. Some Rights Reserved.
+
+This module is free software; you can redistribute it and/or modify it under
+the same terms as Perl itself.
+=head1 Copyright and License
+
 =cut
 
 # '0.01.2' for 'version' is not a valid version. (provides -> pair -> version) [Validation: 1.0.0]
