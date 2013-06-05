@@ -28,7 +28,8 @@
 # Avoid build files.
 ^PGXN-Meta-Validator
 
-# Avoid spelling test.
-pod-spelling.t$
+# Avoid Pod tests.
+t/pod.+
+
 ^MYMETA.yml$
 ^MYMETA\.json$
