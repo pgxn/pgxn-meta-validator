@@ -49,7 +49,7 @@ $class->new(
         resources => {
             homepage   => 'http://search.cpan.org/dist/PGXN-Meta-Validator/',
             bugtracker => 'http://github.com/pgxn/pgxn-meta-validator/issues/',
-            repository => 'http://github.com/pgxn/pgxn-meta-validator/tree/',
+            repository => 'http://github.com/pgxn/pgxn-meta-validator',
         }
     },
 )->create_build_script;
